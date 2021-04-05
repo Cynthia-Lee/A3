@@ -8,6 +8,10 @@
 
 from sklearn.datasets import load_files
 from sklearn.feature_extraction.text import CountVectorizer
+from sklearn.feature_extraction.text import TfidfTransformer
+import nltk
+nltk.download('stopwords')
+from nltk.corpus import stopwords
 
 ### Loading the 20 newsgroups dataset
 categories = ['rec.sport.hockey', 'sci.med', 'soc.religion.christian', 'talk.religion.misc']
@@ -37,7 +41,25 @@ twenty_train = load_files(train_folder, categories=categories, shuffle=True, ran
 # 1. CountVectorizer (bag of words) - Uses the number of times each word was observed.
 # 2 TFIDFVectorizer - Uses relative frequencies normalized by the inverse of the number of documents in which the word was observed
 
-count_vect = CountVectorizer() # builds dictionary of features and transofmrs documents to feature vectors
+# https://scikit-learn.org/stable/modules/generated/sklearn.feature_extraction.text.CountVectorizer.html#sklearn.feature_extraction.text.CountVectorizer
+
+nltk_stop_words = set(stopwords.words('english'))
+
+# unigram baseline (UB)
+count_vect = CountVectorizer(lowercase=True, stop_words=nltk_stop_words) # builds dictionary of features and transofmrs documents to feature vectors
 X_train_counts = count_vect.fit_transform(twenty_train.data)
-# print(X_train_counts.shape)
+print(X_train_counts.shape)
 # print(count_vect.vocabulary_.get(u'algorithm')) # counts of N-grams of words or consecutive characters
+
+tf_transformer = TfidfTransformer(use_idf=True).fit(X_train_counts)
+X_train_tf = tf_transformer.transform(X_train_counts)
+# print(X_train_tf.shape)
+
+# bigram baseline (BB)
+bigram_vectorizer = CountVectorizer(lowercase=True, stop_words=nltk_stop_words, ngram_range=(1,2), token_pattern=r'\b\w+\b', min_df=1)
+X_train_counts_bb = bigram_vectorizer.fit_transform(twenty_train.data)
+print(X_train_counts_bb.shape)
+
+# Preprocessing
+# a. lower case and filter out stopwords
+# b. apply stemming
