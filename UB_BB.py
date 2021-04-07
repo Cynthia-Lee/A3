@@ -35,10 +35,10 @@ from sklearn.model_selection import ShuffleSplit
 ### Main class ###
 if __name__ == '__main__':
     # (sys.argv[0]) # UB_BB.py
-    # trainset = (sys.argv[1])
-    # evalset = (sys.argv[2])
-    # output = (sys.argv[3])
-    # display_LC = (sys.argv[4]) # `1' to show the plot
+    trainset = (sys.argv[1])
+    evalset = (sys.argv[2])
+    output = (sys.argv[3])
+    display_LC = (sys.argv[4]) # `1' to show the plot
 
     categories = ['rec.sport.hockey', 'sci.med', 'soc.religion.christian', 'talk.religion.misc']
     train_folder = ".\Selected 20NewsGroup\Training"
@@ -48,6 +48,8 @@ if __name__ == '__main__':
     twenty_evaluation = load_files(evaluation_folder, categories=categories, shuffle=True, random_state=42, encoding='latin1')
 
     docs_test = twenty_evaluation.data
+
+    f = open(output, "w")
 
     # -----
     
@@ -63,7 +65,7 @@ if __name__ == '__main__':
     info = precision_recall_fscore_support(twenty_evaluation.target, predicted, average='macro')
     # precision, # recall, fbeta_score, support
     result = ",".join(map(str,info[:-1]))
-    print("NB,BB," + result)
+    f.write("NB,UB," + result + "\n")
 
     # NB BB
     text_clf = Pipeline([
@@ -75,7 +77,7 @@ if __name__ == '__main__':
     predicted = text_clf.predict(docs_test)
     info = precision_recall_fscore_support(twenty_evaluation.target, predicted, average='macro')
     result = ",".join(map(str,info[:-1]))
-    print("NB,UB," + result)
+    f.write("NB,BB," + result + "\n")
 
     # -----
 
@@ -89,7 +91,7 @@ if __name__ == '__main__':
     predicted = text_clf.predict(docs_test)
     info = precision_recall_fscore_support(twenty_evaluation.target, predicted, average='macro')
     result = ",".join(map(str,info[:-1]))
-    print("LR,UB," + result)
+    f.write("LR,UB," + result + "\n")
 
     # LR BB
     text_clf = Pipeline([
@@ -101,7 +103,7 @@ if __name__ == '__main__':
     predicted = text_clf.predict(docs_test)
     info = precision_recall_fscore_support(twenty_evaluation.target, predicted, average='macro')
     result = ",".join(map(str,info[:-1]))
-    print("LR,BB," + result)
+    f.write("LR,BB," + result + "\n")
 
     # -----
 
@@ -115,7 +117,7 @@ if __name__ == '__main__':
     predicted = text_clf.predict(docs_test)
     info = precision_recall_fscore_support(twenty_evaluation.target, predicted, average='macro')
     result = ",".join(map(str,info[:-1]))
-    print("SVM,UB," + result)
+    f.write("SVM,UB," + result + "\n")
 
     # SVM BB
     text_clf = Pipeline([
@@ -127,7 +129,7 @@ if __name__ == '__main__':
     predicted = text_clf.predict(docs_test)
     info = precision_recall_fscore_support(twenty_evaluation.target, predicted, average='macro')
     result = ",".join(map(str,info[:-1]))
-    print("SVM,BB," + result)
+    f.write("SVM,BB," + result + "\n")
 
     # -----
 
@@ -141,7 +143,7 @@ if __name__ == '__main__':
     predicted = text_clf.predict(docs_test)
     info = precision_recall_fscore_support(twenty_evaluation.target, predicted, average='macro')
     result = ",".join(map(str,info[:-1]))
-    print("RF,UB," + result)
+    f.write("RF,UB," + result + "\n")
 
     # RF BB
     text_clf = Pipeline([
@@ -153,9 +155,14 @@ if __name__ == '__main__':
     predicted = text_clf.predict(docs_test)
     info = precision_recall_fscore_support(twenty_evaluation.target, predicted, average='macro')
     result = ",".join(map(str,info[:-1]))
-    print("RF,BB," + result)
+    f.write("RF,BB," + result)
+
+    f.close()
 
     # -----
+
+    if (display_LC == '1'):
+        print("show")
     '''
     # learning curve (LC)
     # show the performance of each classifier only with the unigram representation.
