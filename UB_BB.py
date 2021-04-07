@@ -50,7 +50,7 @@ if __name__ == '__main__':
     docs_test = twenty_evaluation.data
 
     # -----
-    '''
+    
     # NB UB
     text_clf = Pipeline([
         ('vect', CountVectorizer()), # vector
@@ -63,7 +63,7 @@ if __name__ == '__main__':
     result = precision_recall_fscore_support(twenty_evaluation.target, predicted, average='macro')
     # precision, # recall, fbeta_score, support
     print("NB,UB,", result)
-
+    '''
     # NB BB
     text_clf = Pipeline([
         ('vect', CountVectorizer(analyzer='word', ngram_range=(2, 2))), # vector
@@ -155,7 +155,7 @@ if __name__ == '__main__':
     # The learning curve is a plot of the performance of the classifier 
     # (F1-score on the y-axis) on the evaluation data, when trained on different amounts of training data (size of training data on the x-axis).
 
-    training_sizes = [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1]
+    training_sizes = [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0]
 
     # You are given the validation fold, ie, evaluation data, and do not need to repeat many times. 
     # All you need is to train on the training data with varying sizes and get F1 score on the evaluation data.
@@ -163,13 +163,16 @@ if __name__ == '__main__':
     # https://scikit-learn.org/stable/modules/cross_validation.html
 
     def learning_curve(train_data, train_target, t_size, classifier):
-        X_train, X_test, y_train, y_test = train_test_split(train_data, train_target, train_size=t_size)
         text_clf = Pipeline([
             ('vect', CountVectorizer()), # vector
             ('tfidf', TfidfTransformer()), # transformer
             ('clf', classifier), # classifier
         ])
-        text_clf.fit(X_train, y_train)
+        if (t_size == 1.0):
+            text_clf.fit(twenty_train.data, twenty_train.target)
+        else:
+            X_train, X_test, y_train, y_test = train_test_split(train_data, train_target, train_size=t_size)
+            text_clf.fit(X_train, y_train)
         # predicted = text_clf.predict(X_test)
         # text_clf.fit(train_data, train_target)
         predicted = text_clf.predict(docs_test) # twenty_evaluation.data
@@ -183,10 +186,11 @@ if __name__ == '__main__':
     svm_f1_arr = []
     rf_f1_arr = []
     for t_size in training_sizes:
-        nb = learning_curve(twenty_train.data, twenty_train.target, t_size, MultinomialNB())
-        nb_f1_arr.append(nb)
-        # lr = learning_curve(twenty_train.data, twenty_train.target, t_size, LogisticRegression())
-        # lr_f1_arr.append(lr)
+        print(t_size)
+        # nb = learning_curve(twenty_train.data, twenty_train.target, t_size, MultinomialNB())
+        # nb_f1_arr.append(nb)
+        lr = learning_curve(twenty_train.data, twenty_train.target, t_size, LogisticRegression())
+        lr_f1_arr.append(lr)
         # svm = learning_curve(twenty_train.data, twenty_train.target, t_size, SGDClassifier())
         # svm_f1_arr.append(svm)
         # rf = learning_curve(twenty_train.data, twenty_train.target, t_size, RandomForestClassifier())
