@@ -60,10 +60,11 @@ if __name__ == '__main__':
     text_clf.fit(twenty_train.data, twenty_train.target)
     predicted = text_clf.predict(docs_test)
     # print(np.mean(predicted == twenty_evaluation.target)) # accuracy
-    result = precision_recall_fscore_support(twenty_evaluation.target, predicted, average='macro')
+    info = precision_recall_fscore_support(twenty_evaluation.target, predicted, average='macro')
     # precision, # recall, fbeta_score, support
-    print("NB,UB,", result)
-    '''
+    result = ",".join(map(str,info[:-1]))
+    print("NB,BB," + result)
+
     # NB BB
     text_clf = Pipeline([
         ('vect', CountVectorizer(analyzer='word', ngram_range=(2, 2))), # vector
@@ -72,9 +73,9 @@ if __name__ == '__main__':
     ])
     text_clf.fit(twenty_train.data, twenty_train.target)
     predicted = text_clf.predict(docs_test)
-    # print(np.mean(predicted == twenty_evaluation.target)) # accuracy
-    result = precision_recall_fscore_support(twenty_evaluation.target, predicted, average='macro')
-    print("NB,BB,", result)
+    info = precision_recall_fscore_support(twenty_evaluation.target, predicted, average='macro')
+    result = ",".join(map(str,info[:-1]))
+    print("NB,UB," + result)
 
     # -----
 
@@ -86,8 +87,9 @@ if __name__ == '__main__':
     ])
     text_clf.fit(twenty_train.data, twenty_train.target)
     predicted = text_clf.predict(docs_test)
-    result = precision_recall_fscore_support(twenty_evaluation.target, predicted, average='macro')
-    print("LR,UB,", result)
+    info = precision_recall_fscore_support(twenty_evaluation.target, predicted, average='macro')
+    result = ",".join(map(str,info[:-1]))
+    print("LR,UB," + result)
 
     # LR BB
     text_clf = Pipeline([
@@ -97,8 +99,9 @@ if __name__ == '__main__':
     ])
     text_clf.fit(twenty_train.data, twenty_train.target)
     predicted = text_clf.predict(docs_test)
-    result = precision_recall_fscore_support(twenty_evaluation.target, predicted, average='macro')
-    print("LR,BB,", result)
+    info = precision_recall_fscore_support(twenty_evaluation.target, predicted, average='macro')
+    result = ",".join(map(str,info[:-1]))
+    print("LR,BB," + result)
 
     # -----
 
@@ -110,8 +113,9 @@ if __name__ == '__main__':
     ])
     text_clf.fit(twenty_train.data, twenty_train.target)
     predicted = text_clf.predict(docs_test)
-    result = precision_recall_fscore_support(twenty_evaluation.target, predicted, average='macro')
-    print("SVM,UB,", result)
+    info = precision_recall_fscore_support(twenty_evaluation.target, predicted, average='macro')
+    result = ",".join(map(str,info[:-1]))
+    print("SVM,UB," + result)
 
     # SVM BB
     text_clf = Pipeline([
@@ -121,8 +125,9 @@ if __name__ == '__main__':
     ])
     text_clf.fit(twenty_train.data, twenty_train.target)
     predicted = text_clf.predict(docs_test)
-    result = precision_recall_fscore_support(twenty_evaluation.target, predicted, average='macro')
-    print("SVM,BB,", result)
+    info = precision_recall_fscore_support(twenty_evaluation.target, predicted, average='macro')
+    result = ",".join(map(str,info[:-1]))
+    print("SVM,BB," + result)
 
     # -----
 
@@ -134,8 +139,9 @@ if __name__ == '__main__':
     ])
     text_clf.fit(twenty_train.data, twenty_train.target)
     predicted = text_clf.predict(docs_test)
-    result = precision_recall_fscore_support(twenty_evaluation.target, predicted, average='macro')
-    print("RF,UB,", result)
+    info = precision_recall_fscore_support(twenty_evaluation.target, predicted, average='macro')
+    result = ",".join(map(str,info[:-1]))
+    print("RF,UB," + result)
 
     # RF BB
     text_clf = Pipeline([
@@ -145,11 +151,12 @@ if __name__ == '__main__':
     ])
     text_clf.fit(twenty_train.data, twenty_train.target)
     predicted = text_clf.predict(docs_test)
-    result = precision_recall_fscore_support(twenty_evaluation.target, predicted, average='macro')
-    print("RF,BB,", result)
-    '''
+    info = precision_recall_fscore_support(twenty_evaluation.target, predicted, average='macro')
+    result = ",".join(map(str,info[:-1]))
+    print("RF,BB," + result)
+
     # -----
-    
+    '''
     # learning curve (LC)
     # show the performance of each classifier only with the unigram representation.
     # The learning curve is a plot of the performance of the classifier 
@@ -195,16 +202,4 @@ if __name__ == '__main__':
     print("LR", lr_f1_arr)
     print("SVM", svm_f1_arr)
     print("RF", rf_f1_arr)
-
-    # # NB UB
-    # X_train, X_test, y_train, y_test = train_test_split(twenty_train.data, twenty_train.target, train_size=0.1)
-    # text_clf = Pipeline([
-    #     ('vect', CountVectorizer()), # vector
-    #     ('tfidf', TfidfTransformer()), # transformer
-    #     ('clf', MultinomialNB()), # classifier
-    # ])
-    # text_clf.fit(X_train, y_train)
-    # predicted = text_clf.predict(docs_test)
-    # f1 = f1_score(twenty_evaluation.target, predicted, average='macro')
-    # # print(text_clf.score(X_test, y_test))
-    # print("NB,UB,", f1)
+    '''
