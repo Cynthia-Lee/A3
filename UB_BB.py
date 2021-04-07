@@ -14,17 +14,20 @@
 
 # https://scikit-learn.org/stable/modules/generated/sklearn.metrics.precision_recall_fscore_support.html
 
+from functools import lru_cache
 import sys
+import numpy as np
+from sklearn.model_selection import train_test_split
 from sklearn.datasets import load_files
 from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.feature_extraction.text import TfidfTransformer
 from sklearn.pipeline import Pipeline
-import numpy as np
 from sklearn.naive_bayes import MultinomialNB
 from sklearn.linear_model import LogisticRegression
 from sklearn.linear_model import SGDClassifier
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import precision_recall_fscore_support
+from sklearn.metrics import f1_score
 
 ### Main class ###
 if __name__ == '__main__':
@@ -41,8 +44,10 @@ if __name__ == '__main__':
     twenty_train = load_files(train_folder, categories=categories, shuffle=True, random_state=42, encoding='latin1')
     twenty_evaluation = load_files(evaluation_folder, categories=categories, shuffle=True, random_state=42, encoding='latin1')
 
-    # -----
+    docs_test = twenty_evaluation.data
 
+    # -----
+    '''
     # NB UB
     text_clf = Pipeline([
         ('vect', CountVectorizer()), # vector
@@ -50,7 +55,7 @@ if __name__ == '__main__':
         ('clf', MultinomialNB()), # classifier
     ])
     text_clf.fit(twenty_train.data, twenty_train.target)
-    predicted = text_clf.predict(twenty_evaluation.data)
+    predicted = text_clf.predict(docs_test)
     # print(np.mean(predicted == twenty_evaluation.target)) # accuracy
     result = precision_recall_fscore_support(twenty_evaluation.target, predicted, average='macro')
     # precision, # recall, fbeta_score, support
@@ -63,7 +68,7 @@ if __name__ == '__main__':
         ('clf', MultinomialNB()), # classifier
     ])
     text_clf.fit(twenty_train.data, twenty_train.target)
-    predicted = text_clf.predict(twenty_evaluation.data)
+    predicted = text_clf.predict(docs_test)
     # print(np.mean(predicted == twenty_evaluation.target)) # accuracy
     result = precision_recall_fscore_support(twenty_evaluation.target, predicted, average='macro')
     print("NB,BB,", result)
@@ -77,18 +82,18 @@ if __name__ == '__main__':
         ('clf', LogisticRegression()), # classifier
     ])
     text_clf.fit(twenty_train.data, twenty_train.target)
-    predicted = text_clf.predict(twenty_evaluation.data)
+    predicted = text_clf.predict(docs_test)
     result = precision_recall_fscore_support(twenty_evaluation.target, predicted, average='macro')
     print("LR,UB,", result)
 
     # LR BB
     text_clf = Pipeline([
-        ('vect',CountVectorizer(analyzer='word', ngram_range=(2, 2))), # vector
+        ('vect', CountVectorizer(analyzer='word', ngram_range=(2, 2))), # vector
         ('tfidf', TfidfTransformer()), # transformer
         ('clf', LogisticRegression()), # classifier
     ])
     text_clf.fit(twenty_train.data, twenty_train.target)
-    predicted = text_clf.predict(twenty_evaluation.data)
+    predicted = text_clf.predict(docs_test)
     result = precision_recall_fscore_support(twenty_evaluation.target, predicted, average='macro')
     print("LR,BB,", result)
 
@@ -101,18 +106,18 @@ if __name__ == '__main__':
         ('clf', SGDClassifier()), # classifier
     ])
     text_clf.fit(twenty_train.data, twenty_train.target)
-    predicted = text_clf.predict(twenty_evaluation.data)
+    predicted = text_clf.predict(docs_test)
     result = precision_recall_fscore_support(twenty_evaluation.target, predicted, average='macro')
     print("SVM,UB,", result)
 
     # SVM BB
     text_clf = Pipeline([
-        ('vect',CountVectorizer(analyzer='word', ngram_range=(2, 2))), # vector
+        ('vect', CountVectorizer(analyzer='word', ngram_range=(2, 2))), # vector
         ('tfidf', TfidfTransformer()), # transformer
         ('clf', SGDClassifier()), # classifier
     ])
     text_clf.fit(twenty_train.data, twenty_train.target)
-    predicted = text_clf.predict(twenty_evaluation.data)
+    predicted = text_clf.predict(docs_test)
     result = precision_recall_fscore_support(twenty_evaluation.target, predicted, average='macro')
     print("SVM,BB,", result)
 
@@ -125,19 +130,73 @@ if __name__ == '__main__':
         ('clf', RandomForestClassifier()), # classifier
     ])
     text_clf.fit(twenty_train.data, twenty_train.target)
-    predicted = text_clf.predict(twenty_evaluation.data)
+    predicted = text_clf.predict(docs_test)
     result = precision_recall_fscore_support(twenty_evaluation.target, predicted, average='macro')
     print("RF,UB,", result)
 
     # RF BB
     text_clf = Pipeline([
-        ('vect',CountVectorizer(analyzer='word', ngram_range=(2, 2))), # vector
+        ('vect', CountVectorizer(analyzer='word', ngram_range=(2, 2))), # vector
         ('tfidf', TfidfTransformer()), # transformer
         ('clf', RandomForestClassifier()), # classifier
     ])
     text_clf.fit(twenty_train.data, twenty_train.target)
-    predicted = text_clf.predict(twenty_evaluation.data)
+    predicted = text_clf.predict(docs_test)
     result = precision_recall_fscore_support(twenty_evaluation.target, predicted, average='macro')
     print("RF,BB,", result)
-
+    '''
     # -----
+
+    # learning curve (LC)
+    # show the performance of each classifier only with the unigram representation.
+    # The learning curve is a plot of the performance of the classifier 
+    # (F1-score on the y-axis) on the evaluation data, when trained on different amounts of training data (size of training data on the x-axis).
+
+    training_sizes = [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1]
+
+    # You are given the validation fold, ie, evaluation data, and do not need to repeat many times. 
+    # All you need is to train on the training data with varying sizes and get F1 score on the evaluation data.
+
+    def learning_curve(train_data, train_target, t_size, classifier):
+        X_train, X_test, y_train, y_test = train_test_split(train_data, train_target, train_size=t_size)
+        text_clf = Pipeline([
+            ('vect', CountVectorizer()), # vector
+            ('tfidf', TfidfTransformer()), # transformer
+            ('clf', classifier), # classifier
+        ])
+        text_clf.fit(X_train, y_train)
+        predicted = text_clf.predict(docs_test)
+        f1 = f1_score(twenty_evaluation.target, predicted, average='macro')
+        return f1
+
+    nb_f1_arr = []
+    lr_f1_arr = []
+    svm_f1_arr = []
+    rf_f1_arr = []
+    for t_size in training_sizes:
+        # nb = learning_curve(twenty_train.data, twenty_train.target, t_size, MultinomialNB())
+        lr = learning_curve(twenty_train.data, twenty_train.target, t_size, LogisticRegression())
+        # svm = learning_curve(twenty_train.data, twenty_train.target, t_size, SGDClassifier())
+        # rf = learning_curve(twenty_train.data, twenty_train.target, t_size, RandomForestClassifier())
+        # nb_f1_arr.append(nb)
+        lr_f1_arr.append(lr)
+        # svm_f1_arr.append(svm)
+        # rf_f1_arr.append(rf)
+
+    print(nb_f1_arr)
+    print(lr_f1_arr)
+    print(svm_f1_arr)
+    print(rf_f1_arr)
+
+    # # NB UB
+    # X_train, X_test, y_train, y_test = train_test_split(twenty_train.data, twenty_train.target, train_size=0.1)
+    # text_clf = Pipeline([
+    #     ('vect', CountVectorizer()), # vector
+    #     ('tfidf', TfidfTransformer()), # transformer
+    #     ('clf', MultinomialNB()), # classifier
+    # ])
+    # text_clf.fit(X_train, y_train)
+    # predicted = text_clf.predict(docs_test)
+    # f1 = f1_score(twenty_evaluation.target, predicted, average='macro')
+    # # print(text_clf.score(X_test, y_test))
+    # print("NB,UB,", f1)
