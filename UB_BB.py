@@ -169,16 +169,12 @@ if __name__ == '__main__':
             ('clf', classifier), # classifier
         ])
         if (t_size == 1.0):
-            text_clf.fit(twenty_train.data, twenty_train.target)
+            text_clf.fit(twenty_train.data, twenty_train.target) # text_clf.fit(train_data, train_target)
         else:
             X_train, X_test, y_train, y_test = train_test_split(train_data, train_target, train_size=t_size)
             text_clf.fit(X_train, y_train)
-        # predicted = text_clf.predict(X_test)
-        # text_clf.fit(train_data, train_target)
         predicted = text_clf.predict(docs_test) # twenty_evaluation.data
         score = f1_score(twenty_evaluation.target, predicted, average='macro')
-        # cv = ShuffleSplit(train_size=t_size, n_splits=2)
-        # score = cross_val_score(text_clf, train_data, train_target, cv=cv, scoring='f1_macro').mean()
         return score
 
     nb_f1_arr = []
@@ -186,20 +182,19 @@ if __name__ == '__main__':
     svm_f1_arr = []
     rf_f1_arr = []
     for t_size in training_sizes:
-        print(t_size)
-        # nb = learning_curve(twenty_train.data, twenty_train.target, t_size, MultinomialNB())
-        # nb_f1_arr.append(nb)
+        nb = learning_curve(twenty_train.data, twenty_train.target, t_size, MultinomialNB())
+        nb_f1_arr.append(nb)
         lr = learning_curve(twenty_train.data, twenty_train.target, t_size, LogisticRegression())
         lr_f1_arr.append(lr)
-        # svm = learning_curve(twenty_train.data, twenty_train.target, t_size, SGDClassifier())
-        # svm_f1_arr.append(svm)
-        # rf = learning_curve(twenty_train.data, twenty_train.target, t_size, RandomForestClassifier())
-        # rf_f1_arr.append(rf)
+        svm = learning_curve(twenty_train.data, twenty_train.target, t_size, SGDClassifier())
+        svm_f1_arr.append(svm)
+        rf = learning_curve(twenty_train.data, twenty_train.target, t_size, RandomForestClassifier())
+        rf_f1_arr.append(rf)
 
-    print(nb_f1_arr)
-    print(lr_f1_arr)
-    print(svm_f1_arr)
-    print(rf_f1_arr)
+    print("NB", nb_f1_arr)
+    print("LR", lr_f1_arr)
+    print("SVM", svm_f1_arr)
+    print("RF", rf_f1_arr)
 
     # # NB UB
     # X_train, X_test, y_train, y_test = train_test_split(twenty_train.data, twenty_train.target, train_size=0.1)
