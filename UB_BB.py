@@ -161,20 +161,10 @@ if __name__ == '__main__':
 
     # -----
 
-    if (display_LC == '1'):
-        print("show")
-    '''
     # learning curve (LC)
     # show the performance of each classifier only with the unigram representation.
     # The learning curve is a plot of the performance of the classifier 
     # (F1-score on the y-axis) on the evaluation data, when trained on different amounts of training data (size of training data on the x-axis).
-
-    training_sizes = [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0]
-
-    # You are given the validation fold, ie, evaluation data, and do not need to repeat many times. 
-    # All you need is to train on the training data with varying sizes and get F1 score on the evaluation data.
-
-    # https://scikit-learn.org/stable/modules/cross_validation.html
 
     def learning_curve(train_data, train_target, t_size, classifier):
         text_clf = Pipeline([
@@ -191,22 +181,28 @@ if __name__ == '__main__':
         score = f1_score(twenty_evaluation.target, predicted, average='macro')
         return score
 
-    nb_f1_arr = []
-    lr_f1_arr = []
-    svm_f1_arr = []
-    rf_f1_arr = []
-    for t_size in training_sizes:
-        nb = learning_curve(twenty_train.data, twenty_train.target, t_size, MultinomialNB())
-        nb_f1_arr.append(nb)
-        lr = learning_curve(twenty_train.data, twenty_train.target, t_size, LogisticRegression())
-        lr_f1_arr.append(lr)
-        svm = learning_curve(twenty_train.data, twenty_train.target, t_size, SGDClassifier())
-        svm_f1_arr.append(svm)
-        rf = learning_curve(twenty_train.data, twenty_train.target, t_size, RandomForestClassifier())
-        rf_f1_arr.append(rf)
+    # You are given the validation fold, ie, evaluation data, and do not need to repeat many times. 
+    # All you need is to train on the training data with varying sizes and get F1 score on the evaluation data.
 
-    print("NB", nb_f1_arr)
-    print("LR", lr_f1_arr)
-    print("SVM", svm_f1_arr)
-    print("RF", rf_f1_arr)
-    '''
+    # https://scikit-learn.org/stable/modules/cross_validation.html
+
+    if (display_LC == '1'):
+        training_sizes = [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0]
+        nb_f1_arr = []
+        lr_f1_arr = []
+        svm_f1_arr = []
+        rf_f1_arr = []
+        for t_size in training_sizes:
+            nb = learning_curve(twenty_train.data, twenty_train.target, t_size, MultinomialNB())
+            nb_f1_arr.append(nb)
+            lr = learning_curve(twenty_train.data, twenty_train.target, t_size, LogisticRegression())
+            lr_f1_arr.append(lr)
+            svm = learning_curve(twenty_train.data, twenty_train.target, t_size, SGDClassifier())
+            svm_f1_arr.append(svm)
+            rf = learning_curve(twenty_train.data, twenty_train.target, t_size, RandomForestClassifier())
+            rf_f1_arr.append(rf)
+
+        print("NB", nb_f1_arr)
+        print("LR", lr_f1_arr)
+        print("SVM", svm_f1_arr)
+        print("RF", rf_f1_arr)
