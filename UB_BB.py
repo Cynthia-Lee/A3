@@ -28,6 +28,8 @@ from sklearn.linear_model import SGDClassifier
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import precision_recall_fscore_support
 from sklearn.metrics import f1_score
+from sklearn.model_selection import cross_val_score
+from sklearn.model_selection import ShuffleSplit
 
 ### Main class ###
 if __name__ == '__main__':
@@ -157,30 +159,36 @@ if __name__ == '__main__':
     # You are given the validation fold, ie, evaluation data, and do not need to repeat many times. 
     # All you need is to train on the training data with varying sizes and get F1 score on the evaluation data.
 
+    # https://scikit-learn.org/stable/modules/cross_validation.html
+
     def learning_curve(train_data, train_target, t_size, classifier):
-        X_train, X_test, y_train, y_test = train_test_split(train_data, train_target, train_size=t_size)
+        # X_train, X_test, y_train, y_test = train_test_split(train_data, train_target, train_size=t_size)
         text_clf = Pipeline([
             ('vect', CountVectorizer()), # vector
             ('tfidf', TfidfTransformer()), # transformer
             ('clf', classifier), # classifier
         ])
-        text_clf.fit(X_train, y_train)
-        predicted = text_clf.predict(docs_test)
-        f1 = f1_score(twenty_evaluation.target, predicted, average='macro')
-        return f1
+        # text_clf.fit(X_train, y_train)
+        # predicted = text_clf.predict(X_test)
+        text_clf.fit(train_data, train_target)
+        # predicted = text_clf.predict(docs_test)
+        # score = f1_score(y_test, predicted, average='macro')
+        cv = ShuffleSplit(train_size=t_size, n_splits=5)
+        score = cross_val_score(text_clf, train_data, train_target, cv=cv, scoring='f1_macro').mean()
+        return score
 
     nb_f1_arr = []
     lr_f1_arr = []
     svm_f1_arr = []
     rf_f1_arr = []
     for t_size in training_sizes:
-        # nb = learning_curve(twenty_train.data, twenty_train.target, t_size, MultinomialNB())
-        lr = learning_curve(twenty_train.data, twenty_train.target, t_size, LogisticRegression())
+        nb = learning_curve(twenty_train.data, twenty_train.target, t_size, MultinomialNB())
+        nb_f1_arr.append(nb)
+        # lr = learning_curve(twenty_train.data, twenty_train.target, t_size, LogisticRegression())
+        # lr_f1_arr.append(lr)
         # svm = learning_curve(twenty_train.data, twenty_train.target, t_size, SGDClassifier())
-        # rf = learning_curve(twenty_train.data, twenty_train.target, t_size, RandomForestClassifier())
-        # nb_f1_arr.append(nb)
-        lr_f1_arr.append(lr)
         # svm_f1_arr.append(svm)
+        # rf = learning_curve(twenty_train.data, twenty_train.target, t_size, RandomForestClassifier())
         # rf_f1_arr.append(rf)
 
     print(nb_f1_arr)
