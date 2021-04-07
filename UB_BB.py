@@ -148,7 +148,7 @@ if __name__ == '__main__':
     print("RF,BB,", result)
     '''
     # -----
-
+    
     # learning curve (LC)
     # show the performance of each classifier only with the unigram representation.
     # The learning curve is a plot of the performance of the classifier 
@@ -162,19 +162,19 @@ if __name__ == '__main__':
     # https://scikit-learn.org/stable/modules/cross_validation.html
 
     def learning_curve(train_data, train_target, t_size, classifier):
-        # X_train, X_test, y_train, y_test = train_test_split(train_data, train_target, train_size=t_size)
+        X_train, X_test, y_train, y_test = train_test_split(train_data, train_target, train_size=t_size)
         text_clf = Pipeline([
             ('vect', CountVectorizer()), # vector
             ('tfidf', TfidfTransformer()), # transformer
             ('clf', classifier), # classifier
         ])
-        # text_clf.fit(X_train, y_train)
-        # predicted = text_clf.predict(X_test)
-        text_clf.fit(train_data, train_target)
+        text_clf.fit(X_train, y_train)
+        predicted = text_clf.predict(X_test)
+        # text_clf.fit(train_data, train_target)
         # predicted = text_clf.predict(docs_test)
-        # score = f1_score(y_test, predicted, average='macro')
-        cv = ShuffleSplit(train_size=t_size, n_splits=5)
-        score = cross_val_score(text_clf, train_data, train_target, cv=cv, scoring='f1_macro').mean()
+        score = f1_score(y_test, predicted, average='macro')
+        # cv = ShuffleSplit(train_size=t_size, n_splits=2)
+        # score = cross_val_score(text_clf, train_data, train_target, cv=cv, scoring='f1_macro').mean()
         return score
 
     nb_f1_arr = []
@@ -182,7 +182,7 @@ if __name__ == '__main__':
     svm_f1_arr = []
     rf_f1_arr = []
     for t_size in training_sizes:
-        nb = learning_curve(twenty_train.data, twenty_train.target, t_size, MultinomialNB())
+        nb = learning_curve(twenty_train.data, docs_test, t_size, MultinomialNB())
         nb_f1_arr.append(nb)
         # lr = learning_curve(twenty_train.data, twenty_train.target, t_size, LogisticRegression())
         # lr_f1_arr.append(lr)

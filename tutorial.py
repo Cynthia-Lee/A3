@@ -79,7 +79,7 @@ print(text_clf.fit(twenty_train.data, twenty_train.target)) # train the model
 evaluation_folder = ".\Selected 20NewsGroup\Evaluation"
 
 twenty_test = load_files(evaluation_folder, categories=categories, shuffle=True, random_state=42, encoding='latin1')
-docs_test = twenty_test.data
+docs_test = twenty_test.data # evaluation data
 predicted = text_clf.predict(docs_test)
 print(np.mean(predicted == twenty_test.target))
 
