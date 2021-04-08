@@ -14,9 +14,9 @@
 
 # https://scikit-learn.org/stable/modules/generated/sklearn.metrics.precision_recall_fscore_support.html
 
-from functools import lru_cache
 import sys
-from nltk import text
+import matplotlib
+import matplotlib.pyplot as plt
 import numpy as np
 from sklearn.model_selection import train_test_split
 from sklearn.datasets import load_files
@@ -29,8 +29,6 @@ from sklearn.linear_model import SGDClassifier
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import precision_recall_fscore_support
 from sklearn.metrics import f1_score
-from sklearn.model_selection import cross_val_score
-from sklearn.model_selection import ShuffleSplit
 
 ### Main class ###
 if __name__ == '__main__':
@@ -206,3 +204,14 @@ if __name__ == '__main__':
         print("LR", lr_f1_arr)
         print("SVM", svm_f1_arr)
         print("RF", rf_f1_arr)
+
+        x_label = ["10", "20", "30", "40", "50", "60", "70", "80", "90", "100"]
+        plt.xlabel('Size of training data (%)')
+        plt.ylabel('F1-score')
+        plt.ylim(0.0, 1.0)
+
+        plt.plot(x_label, nb_f1_arr, '-^', color='red') #NB
+        plt.plot(x_label, lr_f1_arr, '-x', color='violet') # LR
+        plt.plot(x_label, svm_f1_arr, '->', color='forestgreen') # SVM
+        plt.plot(x_label, rf_f1_arr, '-o', color='orange') # RF
+        plt.show()
