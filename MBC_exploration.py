@@ -24,18 +24,26 @@ from sklearn.model_selection import GridSearchCV
 # Body
 # The main body of the document. This is where you should extract features from.
 
-### Tutorial: Loading the 20 newsgroups dataset
+### Loading the 20 newsgroups dataset
 categories = ['rec.sport.hockey', 'sci.med', 'soc.religion.christian', 'talk.religion.misc']
 train_folder = ".\Selected 20NewsGroup\Training"
+evaluation_folder = ".\Selected 20NewsGroup\Evaluation"
 
 twenty_train = load_files(train_folder, categories=categories, shuffle=True, random_state=42, encoding='latin1')
-# {
-# 'DESCR': None,
-# 'data': [],
-# 'filenames': array(),
-# 'target': array(),
-# 'target_names': []
-# }
+twenty_evaluation = load_files(evaluation_folder, categories=categories, shuffle=True, random_state=42, encoding='latin1')
+# print(len(twenty_train.data)) # 2170
+# print(len(twenty_evaluation.data)) # 721
+
+# remove headers
+for i in range(len(twenty_train.data)):
+    text = twenty_train.data[i]
+    index = text.find("\n\n")
+    twenty_train.data[i] = text[index:]
+
+for i in range(len(twenty_evaluation.data)):
+    text = twenty_evaluation.data[i]
+    index = text.find("\n\n")
+    twenty_evaluation.data[i] = text[index:]
 
 # print(twenty_train.target_names)
 # print(len(twenty_train.data))
@@ -46,7 +54,7 @@ twenty_train = load_files(train_folder, categories=categories, shuffle=True, ran
 # print(twenty_train.target_names[twenty_train.target[0]]) # category
 
 # -----------------------------------------------------------------------------------------
-
+'''
 ### Design Choices for your best configuration ###
 ### Feature Representations
 # 1. CountVectorizer - Uses the number of times each word was observed.
@@ -157,3 +165,4 @@ print(metrics.confusion_matrix(twenty_test.target, predicted))
 # print(gs_clf.best_score_)
 # for param_name in sorted(parameters.keys()):
 #     print("%s: %r" % (param_name, gs_clf.best_params_[param_name]))
+'''

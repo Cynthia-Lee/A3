@@ -45,7 +45,6 @@ if __name__ == '__main__':
 
     twenty_train = load_files(train_folder, categories=categories, shuffle=True, random_state=42, encoding='latin1')
     twenty_evaluation = load_files(evaluation_folder, categories=categories, shuffle=True, random_state=42, encoding='latin1')
-
     docs_test = twenty_evaluation.data
 
     f = open(output, "w")
@@ -65,7 +64,7 @@ if __name__ == '__main__':
     # precision, # recall, fbeta_score, support
     result = ",".join(map(str,info[:-1]))
     f.write("NB,UB," + result + "\n")
-
+    
     # NB BB
     text_clf = Pipeline([
         ('vect', CountVectorizer(analyzer='word', ngram_range=(2, 2))), # vector
