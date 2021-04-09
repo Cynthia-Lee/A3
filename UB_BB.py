@@ -39,8 +39,9 @@ if __name__ == '__main__':
     display_LC = (sys.argv[4]) # `1' to show the plot
 
     categories = ['rec.sport.hockey', 'sci.med', 'soc.religion.christian', 'talk.religion.misc']
-    train_folder = ".\Selected 20NewsGroup\Training"
-    evaluation_folder = ".\Selected 20NewsGroup\Evaluation"
+
+    train_folder = ".\Selected 20NewsGroup\\" + trainset
+    evaluation_folder = ".\Selected 20NewsGroup\\" + evalset
 
     twenty_train = load_files(train_folder, categories=categories, shuffle=True, random_state=42, encoding='latin1')
     twenty_evaluation = load_files(evaluation_folder, categories=categories, shuffle=True, random_state=42, encoding='latin1')
