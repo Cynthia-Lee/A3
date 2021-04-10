@@ -78,16 +78,8 @@ for i in range(len(twenty_evaluation.data)):
 # b. apply stemming
 
 # TfidfVectorizer equivalent to CountVectorizer followed by TfidfTransformer
-# lowercase=True (default)
-# stop_words
-# token_pattern
-    # The default regexp selects tokens of 2 or more alphanumeric characters (punctuation is completely ignored and always treated as a token separator).
-# ngram_range
-# max_df
-# min_df
 
 # stemming
-
 nltk_stop_words = stopwords.words('english')
 my_stop_words = set(stopwords.words('english')).union(set(ENGLISH_STOP_WORDS))
 stemmer = SnowballStemmer("english") # stemmer = SnowballStemmer("english", ignore_stopwords=True)
@@ -178,8 +170,9 @@ text_clf = check_performance(vect, clf)
 # for param_name in sorted(parameters.keys()):
 #     print("%s: %r" % (param_name, gs_clf.best_params_[param_name]))
 
-print("tokenize_and_lemma and max_df and ngram_range=(1,4)")
+print("tokenize_and_lemma and max_df and ngram_range=(1,4) and alpha=0.001")
 vect = TfidfVectorizer(ngram_range=(1, 4), lowercase=True, tokenizer=tokenize_and_lemma, max_df=0.5)
+clf = MultinomialNB(alpha=0.001)
 text_clf = check_performance(vect, clf)
 
 # print("nltk_stop_words with no tokenizer")
@@ -190,71 +183,23 @@ text_clf = check_performance(vect, clf)
 # vect = TfidfVectorizer(lowercase=True, stop_words=ENGLISH_STOP_WORDS)
 # text_clf = check_performance(vect, clf)
 
-print("my_stop_words and no tokenizer")
-vect = TfidfVectorizer(lowercase=True, stop_words=my_stop_words)
+# print("my_stop_words and no tokenizer")
+# vect = TfidfVectorizer(lowercase=True, stop_words=my_stop_words)
+# clf = MultinomialNB()
+# text_clf = check_performance(vect, clf)
+
+print("my_stop_words and no tokenizer and alpha=0.001")
+vect = TfidfVectorizer(lowercase=True, stop_words=my_stop_words, max_df=0.5, ngram_range=(1,2))
+clf = MultinomialNB(alpha=0.001)
 text_clf = check_performance(vect, clf)
-# parameters = {
-#     'vect__ngram_range': [(1, 1), (1, 2), (2, 2), (1, 3), (3, 3), (1, 4), (4, 4)],
-#     'vect__max_df': [0.5, 0.7, 0.9],
-# }
-# gs_clf = GridSearchCV(text_clf, parameters, cv=5, n_jobs=-1)
-# gs_clf = gs_clf.fit(twenty_train.data, twenty_train.target)
-# for param_name in sorted(parameters.keys()):
-#     print("%s: %r" % (param_name, gs_clf.best_params_[param_name]))
 
-
-
-
-
-### Hyperparameters Tuning ##
-print("now this")
-
-# NB C2
-text_clf = Pipeline([
-        ('vect', CountVectorizer(ngram_range=(1,2), lowercase=True, stop_words=my_stop_words)), # vector
-        ('tfidf', TfidfTransformer(use_idf=True)), # transformer
-        ('clf', MultinomialNB()), # classifier
-    ])
-text_clf.fit(twenty_train.data, twenty_train.target)
-predicted = text_clf.predict(docs_test)
-info = precision_recall_fscore_support(twenty_evaluation.target, predicted, average='macro')
-result = ",".join(map(str,info[:-1]))
-print("NB,C2," + result + "\n")
-
-# NB C3
-text_clf = Pipeline([
-        ('vect', CountVectorizer(ngram_range=(1,2), lowercase=True, stop_words=my_stop_words)), # vector
-        ('tfidf', TfidfTransformer(use_idf=True)), # transformer
-        ('clf', MultinomialNB(alpha=0.001)), # classifier
-    ])
-text_clf.fit(twenty_train.data, twenty_train.target)
-predicted = text_clf.predict(docs_test)
-info = precision_recall_fscore_support(twenty_evaluation.target, predicted, average='macro')
-result = ",".join(map(str,info[:-1]))
-print("NB,C3," + result + "\n")
-
-text_clf = Pipeline([
-        ('vect', CountVectorizer(ngram_range=(1,2), lowercase=True, tokenizer=lemma_tokenizer, max_df=0.5, stop_words="english")), # vector
-        ('tfidf', TfidfTransformer(use_idf=True)), # transformer
-        ('clf', MultinomialNB(alpha=0.001)), # classifier
-    ])
-text_clf.fit(twenty_train.data, twenty_train.target)
-predicted = text_clf.predict(docs_test)
-info = precision_recall_fscore_support(twenty_evaluation.target, predicted, average='macro')
-result = ",".join(map(str,info[:-1]))
-print("NB,C3," + result + "\n")
-
-# parameters = {
-#     'vect__ngram_range': [(1, 1), (1, 2), (2, 2), (1, 3), (3, 3), (1, 4), (4, 4)],
-#     'clf__alpha': (1e-2, 1e-3),
-# }
-# gs_clf = GridSearchCV(text_clf, parameters, cv=5, n_jobs=-1)
-# gs_clf = gs_clf.fit(twenty_train.data, twenty_train.target)
-# for param_name in sorted(parameters.keys()):
-#     print("%s: %r" % (param_name, gs_clf.best_params_[param_name]))
+# print("lemma_tokenizer and max_df=0.5 and alpha=0.001")
+# vect = TfidfVectorizer(ngram_range=(1,3), lowercase=True, tokenizer=lemma_tokenizer, max_df=0.5, stop_words="english")
+# text_clf = check_performance(vect, clf)
 
 ### Feature Selection ###
-# For classification: chi2, f_classif, mutual_info_classif
+# Feature_selections to try: SelectFromModel and SelectKBest
+# score_func for classification: chi2, f_classif, mutual_info_classif
 
 # NB C4
 estimator = DecisionTreeClassifier()
@@ -287,6 +232,8 @@ try_features = [SelectPercentile(c), SelectKBest(c), SelectFpr(c), SelectFromMod
 # gs_clf = gs_clf.fit(twenty_train.data, twenty_train.target)
 # for param_name in sorted(parameters.keys()):
 #     print("%s: %r" % (param_name, gs_clf.best_params_[param_name]))
+
+### More Hyperparameters Tuning ##
 
 # -----
 
