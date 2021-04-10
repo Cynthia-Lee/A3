@@ -1,27 +1,21 @@
-# Hyperparameters
-# 1. Naive Bayes - no hyperparameters 
-# 2. Logistic Regression - Regularization constant, num iterations
-# 3. SVM - Regularization constant, Linear, polynomial or RBF kernels.
-# 4. RandomForest - Number of trees and number of features to consider.
-
 # Sources Used:
 # https://scikit-learn.org/stable/tutorial/text_analytics/working_with_text_data.html?fbclid=IwAR2e_uoplSxSBWON3XZ69JA1Fnck-SFFE42PUKAVPi_quhe8CQk4qUnReWQ
-# https://scikit-learn.org/stable/modules/generated/sklearn.feature_extraction.text.CountVectorizer.html#sklearn.feature_extraction.text.CountVectorizer
+# https://scikit-learn.org/stable/modules/feature_extraction.html
+# https://scikit-learn.org/stable/modules/preprocessing.html
 # http://www.nltk.org/howto/stem.html
 
+from nltk.stem.porter import PorterStemmer
 from sklearn.datasets import load_files
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics import precision_recall_fscore_support
 import nltk
 nltk.download('stopwords')
 from nltk.corpus import stopwords
-
-
-
-
-from nltk import word_tokenize
+import re
+import string
 from nltk.stem.snowball import SnowballStemmer
-
+from nltk import word_tokenize
+#
 nltk.download('punkt')
 from sklearn.naive_bayes import MultinomialNB
 from sklearn.pipeline import Pipeline
@@ -31,14 +25,13 @@ from sklearn import metrics
 from sklearn.model_selection import GridSearchCV
 
 ### Dataset ###
-
 # Header
-# Consists of fields such as <From>, <Subject>, <Organization> and <Lines> fields.
-# The <lines> field includes the number of lines in the document body
+    # Consists of fields such as <From>, <Subject>, <Organization> and <Lines> fields.
+    # The <lines> field includes the number of lines in the document body
 # Body
-# The main body of the document. This is where you should extract features from.
+    # The main body of the document. This is where you should extract features from.
 
-### Loading the 20 newsgroups dataset
+### Loading the 20 newsgroups dataset ### 
 categories = ['rec.sport.hockey', 'sci.med', 'soc.religion.christian', 'talk.religion.misc']
 train_folder = ".\Selected 20NewsGroup\Training"
 evaluation_folder = ".\Selected 20NewsGroup\Evaluation"
@@ -49,59 +42,117 @@ docs_test = twenty_evaluation.data
 # print(len(twenty_train.data)) # 2170
 # print(len(twenty_evaluation.data)) # 721
 
+### Preprocessing ###
+
 # remove headers
+# def remove_header(text):
+#     index = text.find("\n\n")
+#     text = text[index:]
+
 for i in range(len(twenty_train.data)):
     text = twenty_train.data[i]
     index = text.find("\n\n")
     twenty_train.data[i] = text[index:]
-
 for i in range(len(twenty_evaluation.data)):
     text = twenty_evaluation.data[i]
     index = text.find("\n\n")
     twenty_evaluation.data[i] = text[index:]
 
-# print(twenty_train.target_names)
-# print(len(twenty_train.data))
-# print(len(twenty_train.filenames))
-# print("\n".join(twenty_train.data[0].split("\n")[:3]))
-# print("\n".join(twenty_train.data[0].split("\n")[:4])) # header
-# print("\n".join(twenty_train.data[0].split("\n")[4:])) # body
-# print(twenty_train.target_names[twenty_train.target[0]]) # category
+# clean text
+# remove numbers, punctuation, space, url, email
 
-# -----------------------------------------------------------------------------------------
-
-### Design Choices for your best configuration ###
-### Feature Representations
+# Text preprocessing, tokenizing and filtering of stopwords are all included in CountVectorizer, which builds a dictionary of features
+# Feature Extractors
 # 1. CountVectorizer - Uses the number of times each word was observed.
 # 2. TFIDFVectorizer - Uses relative frequencies normalized by the inverse of the number of documents in which the word was observed
 # Preprocessing
 # a. lower case and filter out stopwords
 # b. apply stemming
 
-nltk_stop_words = set(stopwords.words('english'))
+# TfidfVectorizer equivalent to CountVectorizer followed by TfidfTransformer
+# lowercase=True (default)
+# stop_words
+# token_pattern
+    # The default regexp selects tokens of 2 or more alphanumeric characters (punctuation is completely ignored and always treated as a token separator).
+# ngram_range
+# max_df
+# min_df
 
-# NB
+# stemming
+# def stemming_tokenizer(text):
+#     result = []
+#     stemmer = SnowballStemmer("english")
+#     # exclude stopwords from stemmed words
+#     for w in text.split(" "):
+#         if (w.lower() not in stopwords.words('english')):
+#             result.append(stemmer.stem(w))
+#         else:
+#             result.append(w)
+#     return result
+
+def stemming_tokenizer(text):
+    stemmer = SnowballStemmer("english")
+    return [stemmer.stem(w) for w in word_tokenize(text)]
+
+# make sure that you preprocess your stop list to make sure that it is normalised like your tokens will be,
+# and pass the list of normalised words as stop_words to the vectoriser.
+
+# print(stemming_tokenizer("I didn't want to go fishing to get fishes"))
+my_stop_words = stopwords.words('english')
+# exclude nltk stopwords, punctuation, integers
+
+# -----
+
+# NB C1
 text_clf = Pipeline([
-    ('vect', TfidfVectorizer(lowercase=True, stop_words=nltk_stop_words)), # vector
+    ('vect', TfidfVectorizer(lowercase=True, stop_words=my_stop_words)), # vector
     ('clf', MultinomialNB(alpha=1.0)), # classifier
 ])
-# vector equivalent to CountVectorizer followed by TfidfTransformer
-# lowercase=True (default)
-# alpha=1.0 (default)
 text_clf.fit(twenty_train.data, twenty_train.target)
 predicted = text_clf.predict(docs_test)
 info = precision_recall_fscore_support(twenty_evaluation.target, predicted, average='macro')
 result = ",".join(map(str,info[:-1]))
-print("NB,UB," + result + "\n")
-print(np.mean(predicted == twenty_evaluation.target))
+print("NB,C1," + result + "\n")
+
+# # NB C1.5
+# print("Stopwords and Stemming")
+# text_clf = Pipeline([
+#     ('vect', TfidfVectorizer(lowercase=True, tokenizer=stemming_tokenizer, stop_words=my_stop_words)), # vector
+#     ('clf', MultinomialNB(alpha=1.0)), # classifier
+# ])
+# text_clf.fit(twenty_train.data, twenty_train.target)
+# predicted = text_clf.predict(docs_test)
+# info = precision_recall_fscore_support(twenty_evaluation.target, predicted, average='macro')
+# result = ",".join(map(str,info[:-1]))
+# print("NB,C1.5," + result + "\n")
+
+# Feature selection
+
+# Hyperparameters tuning
+
+### Hyperparameters
+# 1. Naive Bayes - no hyperparameters 
+# 2. Logistic Regression - Regularization constant, num iterations
+# 3. SVM - Regularization constant, Linear, polynomial or RBF kernels.
+# 4. RandomForest - Number of trees and number of features to consider.
+
+# NB C2
+text_clf = Pipeline([
+    ('vect', TfidfVectorizer(lowercase=True, stop_words=my_stop_words)), # vector
+    ('clf', MultinomialNB(alpha=0.5)), # classifier
+])
+text_clf.fit(twenty_train.data, twenty_train.target)
+predicted = text_clf.predict(docs_test)
+info = precision_recall_fscore_support(twenty_evaluation.target, predicted, average='macro')
+result = ",".join(map(str,info[:-1]))
+print("NB,C2," + result + "\n")
+
 
 '''
 ### Feature Selection
 # L1, L2 or Lasso regularizers
 
 # https://scikit-learn.org/stable/modules/feature_selection.html
-
-nltk_stop_words = set(stopwords.words('english'))
 
 # make sure that you preprocess your stop list to make sure that it is normalised like your tokens will be,
 # and pass the list of normalised words as stop_words to the vectoriser.
