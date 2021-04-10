@@ -5,12 +5,13 @@
 # http://www.nltk.org/howto/stem.html
 
 from sklearn.datasets import load_files
-from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.feature_extraction.text import CountVectorizer, TfidfTransformer, TfidfVectorizer
 from sklearn.metrics import precision_recall_fscore_support
-#
+from sklearn.model_selection import GridSearchCV
 import nltk
 nltk.download('stopwords')
 from nltk.corpus import stopwords
+#
 import re
 import string
 from nltk.stem.snowball import SnowballStemmer
@@ -60,6 +61,8 @@ for i in range(len(twenty_evaluation.data)):
 # clean text
 # remove numbers, punctuation, space, url, email
 
+### Feature Extraction ###
+
 # Text preprocessing, tokenizing and filtering of stopwords are all included in CountVectorizer, which builds a dictionary of features
 # Feature Extractors
 # 1. CountVectorizer - Uses the number of times each word was observed.
@@ -90,7 +93,7 @@ for i in range(len(twenty_evaluation.data)):
 #     return result
 
 def stemming_tokenizer(text):
-    stemmer = SnowballStemmer("english")
+    stemmer = SnowballStemmer("english") # stemmer = SnowballStemmer("english", ignore_stopwords=True)
     return [stemmer.stem(w) for w in word_tokenize(text)]
 
 # make sure that you preprocess your stop list to make sure that it is normalised like your tokens will be,
@@ -98,26 +101,42 @@ def stemming_tokenizer(text):
 
 # print(stemming_tokenizer("I didn't want to go fishing to get fishes"))
 my_stop_words = stopwords.words('english')
-# exclude nltk stopwords, punctuation, integers
 
 # -----
 
 # NB C1
 text_clf = Pipeline([
     ('vect', TfidfVectorizer(lowercase=True, stop_words=my_stop_words)), # vector
-    ('clf', MultinomialNB(alpha=1.0)), # classifier
+    ('clf', MultinomialNB()), # classifier
 ])
 text_clf.fit(twenty_train.data, twenty_train.target)
 predicted = text_clf.predict(docs_test)
 info = precision_recall_fscore_support(twenty_evaluation.target, predicted, average='macro')
 result = ",".join(map(str,info[:-1]))
 print("NB,C1," + result + "\n")
+# parameters = {
+#     'vect__ngram_range': [(1, 1), (1, 2), (2, 2), (1, 3), (3, 3), (1, 4), (4, 4)],
+#     'clf__alpha': (1e-2, 1e-3),
+# }
+# gs_clf = GridSearchCV(text_clf, parameters, cv=5, n_jobs=-1)
+# gs_clf = gs_clf.fit(twenty_train.data, twenty_train.target)
+# for param_name in sorted(parameters.keys()):
+#     print("%s: %r" % (param_name, gs_clf.best_params_[param_name]))
 
-# # NB C1.5
+# NB C1.5
 # print("Stopwords and Stemming")
 # text_clf = Pipeline([
 #     ('vect', TfidfVectorizer(lowercase=True, tokenizer=stemming_tokenizer, stop_words=my_stop_words)), # vector
-#     ('clf', MultinomialNB(alpha=1.0)), # classifier
+#     ('clf', MultinomialNB()), # classifier
+# ])
+# text_clf.fit(twenty_train.data, twenty_train.target)
+# predicted = text_clf.predict(docs_test)
+# info = precision_recall_fscore_support(twenty_evaluation.target, predicted, average='macro')
+# result = ",".join(map(str,info[:-1]))
+# print("NB,C1.5," + result + "\n")
+# text_clf = Pipeline([
+#     ('vect', TfidfVectorizer(lowercase=True, tokenizer=stemming_tokenizer, stop_words=my_stop_words)), # vector
+#     ('clf', MultinomialNB()), # classifier
 # ])
 # text_clf.fit(twenty_train.data, twenty_train.target)
 # predicted = text_clf.predict(docs_test)
@@ -125,26 +144,46 @@ print("NB,C1," + result + "\n")
 # result = ",".join(map(str,info[:-1]))
 # print("NB,C1.5," + result + "\n")
 
-# Feature selection
-
-# Hyperparameters tuning
-
-### Hyperparameters
-# 1. Naive Bayes - no hyperparameters 
-# 2. Logistic Regression - Regularization constant, num iterations
-# 3. SVM - Regularization constant, Linear, polynomial or RBF kernels.
-# 4. RandomForest - Number of trees and number of features to consider.
+### Hyperparameters Tuning ##
 
 # NB C2
 text_clf = Pipeline([
-    ('vect', TfidfVectorizer(lowercase=True, stop_words=my_stop_words)), # vector
-    ('clf', MultinomialNB(alpha=0.5)), # classifier
-])
+        ('vect', CountVectorizer(ngram_range=(1,2), lowercase=True, stop_words=my_stop_words)), # vector
+        ('tfidf', TfidfTransformer(use_idf=True)), # transformer
+        ('clf', MultinomialNB()), # classifier
+    ])
 text_clf.fit(twenty_train.data, twenty_train.target)
 predicted = text_clf.predict(docs_test)
 info = precision_recall_fscore_support(twenty_evaluation.target, predicted, average='macro')
 result = ",".join(map(str,info[:-1]))
 print("NB,C2," + result + "\n")
+
+# NB C3
+text_clf = Pipeline([
+        ('vect', CountVectorizer(ngram_range=(1,4), lowercase=True, stop_words=my_stop_words)), # vector
+        ('tfidf', TfidfTransformer(use_idf=True)), # transformer
+        ('clf', MultinomialNB(alpha=0.001)), # classifier
+    ])
+text_clf.fit(twenty_train.data, twenty_train.target)
+predicted = text_clf.predict(docs_test)
+info = precision_recall_fscore_support(twenty_evaluation.target, predicted, average='macro')
+result = ",".join(map(str,info[:-1]))
+print("NB,C3," + result + "\n")
+# parameters = {
+#     'vect__ngram_range': [(1, 1), (1, 2), (2, 2), (1, 3), (3, 3), (1, 4), (4, 4)],
+#     'clf__alpha': (1e-2, 1e-3),
+# }
+# gs_clf = GridSearchCV(text_clf, parameters, cv=5, n_jobs=-1)
+# gs_clf = gs_clf.fit(twenty_train.data, twenty_train.target)
+# for param_name in sorted(parameters.keys()):
+#     print("%s: %r" % (param_name, gs_clf.best_params_[param_name]))
+
+### Feature Selection ###
+
+
+
+
+
 
 
 '''
@@ -226,17 +265,4 @@ print(np.mean(predicted == twenty_test.target))
 
 print(metrics.classification_report(twenty_test.target, predicted, target_names=twenty_test.target_names))
 print(metrics.confusion_matrix(twenty_test.target, predicted))
-
-### Tutorial: Parameter tuning using grid search
-# parameters = {
-#     'vect__ngram_range': [(1, 1), (1, 2)],
-#     'tfidf__use_idf': (True, False),
-#     'clf__alpha': (1e-2, 1e-3),
-# }
-
-# gs_clf = GridSearchCV(text_clf, parameters, cv=5, n_jobs=-1)
-# gs_clf = gs_clf.fit(twenty_train.data[:400], twenty_train.target[:400])
-# print(gs_clf.best_score_)
-# for param_name in sorted(parameters.keys()):
-#     print("%s: %r" % (param_name, gs_clf.best_params_[param_name]))
 '''
