@@ -1,13 +1,27 @@
+# Hyperparameters
+# 1. Naive Bayes - no hyperparameters 
+# 2. Logistic Regression - Regularization constant, num iterations
+# 3. SVM - Regularization constant, Linear, polynomial or RBF kernels.
+# 4. RandomForest - Number of trees and number of features to consider.
+
+# Sources Used:
 # https://scikit-learn.org/stable/tutorial/text_analytics/working_with_text_data.html?fbclid=IwAR2e_uoplSxSBWON3XZ69JA1Fnck-SFFE42PUKAVPi_quhe8CQk4qUnReWQ
+# https://scikit-learn.org/stable/modules/generated/sklearn.feature_extraction.text.CountVectorizer.html#sklearn.feature_extraction.text.CountVectorizer
+# http://www.nltk.org/howto/stem.html
 
 from sklearn.datasets import load_files
-from sklearn.feature_extraction.text import CountVectorizer
-from sklearn.feature_extraction.text import TfidfTransformer
+from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.metrics import precision_recall_fscore_support
 import nltk
 nltk.download('stopwords')
 from nltk.corpus import stopwords
+
+
+
+
 from nltk import word_tokenize
 from nltk.stem.snowball import SnowballStemmer
+
 nltk.download('punkt')
 from sklearn.naive_bayes import MultinomialNB
 from sklearn.pipeline import Pipeline
@@ -31,6 +45,7 @@ evaluation_folder = ".\Selected 20NewsGroup\Evaluation"
 
 twenty_train = load_files(train_folder, categories=categories, shuffle=True, random_state=42, encoding='latin1')
 twenty_evaluation = load_files(evaluation_folder, categories=categories, shuffle=True, random_state=42, encoding='latin1')
+docs_test = twenty_evaluation.data
 # print(len(twenty_train.data)) # 2170
 # print(len(twenty_evaluation.data)) # 721
 
@@ -54,7 +69,7 @@ for i in range(len(twenty_evaluation.data)):
 # print(twenty_train.target_names[twenty_train.target[0]]) # category
 
 # -----------------------------------------------------------------------------------------
-'''
+
 ### Design Choices for your best configuration ###
 ### Feature Representations
 # 1. CountVectorizer - Uses the number of times each word was observed.
@@ -63,19 +78,28 @@ for i in range(len(twenty_evaluation.data)):
 # a. lower case and filter out stopwords
 # b. apply stemming
 
-# https://scikit-learn.org/stable/modules/generated/sklearn.feature_extraction.text.CountVectorizer.html#sklearn.feature_extraction.text.CountVectorizer
-# http://www.nltk.org/howto/stem.html
+nltk_stop_words = set(stopwords.words('english'))
 
+# NB
+text_clf = Pipeline([
+    ('vect', TfidfVectorizer(lowercase=True, stop_words=nltk_stop_words)), # vector
+    ('clf', MultinomialNB(alpha=1.0)), # classifier
+])
+# vector equivalent to CountVectorizer followed by TfidfTransformer
+# lowercase=True (default)
+# alpha=1.0 (default)
+text_clf.fit(twenty_train.data, twenty_train.target)
+predicted = text_clf.predict(docs_test)
+info = precision_recall_fscore_support(twenty_evaluation.target, predicted, average='macro')
+result = ",".join(map(str,info[:-1]))
+print("NB,UB," + result + "\n")
+print(np.mean(predicted == twenty_evaluation.target))
+
+'''
 ### Feature Selection
 # L1, L2 or Lasso regularizers
 
 # https://scikit-learn.org/stable/modules/feature_selection.html
-
-### Hyperparameters
-# 1. Naive Bayes - no hyperparameters 
-# 2. Logistic Regression - Regularization constant, num iterations
-# 3. SVM - Regularization constant, Linear, polynomial or RBF kernels.
-# 4. RandomForest - Number of trees and number of features to consider.
 
 nltk_stop_words = set(stopwords.words('english'))
 

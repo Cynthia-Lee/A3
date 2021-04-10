@@ -1,5 +1,11 @@
 # Basic Comparison with Baselines - For all four methods (NB,LR, SVM, and RF), 
-# you should run both unigram and bigram baselines.
+# you should run both unigram and bigram baselines. (UB, BB)
+
+# Hyperparameters
+# 1. Naive Bayes - no hyperparameters 
+# 2. Logistic Regression - Regularization constant, num iterations
+# 3. SVM - Regularization constant, Linear, polynomial or RBF kernels.
+# 4. RandomForest - Number of trees and number of features to consider.
 
 # should run all 4 methods, each with 2 configurations.
 
