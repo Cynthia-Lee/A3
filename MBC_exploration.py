@@ -4,10 +4,10 @@
 # https://scikit-learn.org/stable/modules/preprocessing.html
 # http://www.nltk.org/howto/stem.html
 
-from nltk.stem.porter import PorterStemmer
 from sklearn.datasets import load_files
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics import precision_recall_fscore_support
+#
 import nltk
 nltk.download('stopwords')
 from nltk.corpus import stopwords
@@ -45,18 +45,17 @@ docs_test = twenty_evaluation.data
 ### Preprocessing ###
 
 # remove headers
-# def remove_header(text):
-#     index = text.find("\n\n")
-#     text = text[index:]
+def remove_header(text):
+    index = text.find("\n\n")
+    text = text[index:]
+    return text
 
 for i in range(len(twenty_train.data)):
     text = twenty_train.data[i]
-    index = text.find("\n\n")
-    twenty_train.data[i] = text[index:]
+    twenty_train.data[i] = remove_header(text)
 for i in range(len(twenty_evaluation.data)):
     text = twenty_evaluation.data[i]
-    index = text.find("\n\n")
-    twenty_evaluation.data[i] = text[index:]
+    twenty_evaluation.data[i] = remove_header(text)
 
 # clean text
 # remove numbers, punctuation, space, url, email
