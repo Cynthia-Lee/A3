@@ -119,18 +119,30 @@ def lemma_tokenizer(text):
 
 # -----
 
-def check_performance(vect, clf):
-    text_clf = Pipeline([
-        ('vect', vect), # vector
-        ('clf', clf), # classifier
-    ])
+def check_performance(vect, clf, select=None):
+    if (select):
+        text_clf = Pipeline([
+            ('vect', vect), # vector
+            ('select', select), # feature selector
+            ('clf', clf), # classifier
+        ])
+    else:
+        text_clf = Pipeline([
+            ('vect', vect), # vector
+            ('clf', clf), # classifier
+        ])
     text_clf.fit(twenty_train.data, twenty_train.target)
     predicted = text_clf.predict(docs_test)
     info = precision_recall_fscore_support(twenty_evaluation.target, predicted, average='macro')
     result = ",".join(map(str,info[:-1]))
-    print(result + "\n")
+    print(result)
     return text_clf
 
+# -----
+
+### NB ###
+
+print("NB")
 clf = MultinomialNB()
 
 # print("lemma_tokenizer with stop_words=english")
@@ -170,10 +182,21 @@ text_clf = check_performance(vect, clf)
 # for param_name in sorted(parameters.keys()):
 #     print("%s: %r" % (param_name, gs_clf.best_params_[param_name]))
 
+# 1st best NB
+print("my_stop_words and no tokenizer and alpha=0.001")
+vect = TfidfVectorizer(lowercase=True, stop_words=my_stop_words, max_df=0.5, ngram_range=(1,2))
+clf = MultinomialNB(alpha=0.001)
+text_clf = check_performance(vect, clf)
+
+# 2nd best NB
 print("tokenize_and_lemma and max_df and ngram_range=(1,4) and alpha=0.001")
 vect = TfidfVectorizer(ngram_range=(1, 4), lowercase=True, tokenizer=tokenize_and_lemma, max_df=0.5)
 clf = MultinomialNB(alpha=0.001)
 text_clf = check_performance(vect, clf)
+
+# print("lemma_tokenizer and max_df=0.5 and alpha=0.001")
+# vect = TfidfVectorizer(ngram_range=(1,3), lowercase=True, tokenizer=lemma_tokenizer, max_df=0.5, stop_words="english")
+# text_clf = check_performance(vect, clf)
 
 # print("nltk_stop_words with no tokenizer")
 # vect =  TfidfVectorizer(lowercase=True, stop_words=nltk_stop_words)
@@ -188,19 +211,95 @@ text_clf = check_performance(vect, clf)
 # clf = MultinomialNB()
 # text_clf = check_performance(vect, clf)
 
-print("my_stop_words and no tokenizer and alpha=0.001")
-vect = TfidfVectorizer(lowercase=True, stop_words=my_stop_words, max_df=0.5, ngram_range=(1,2))
-clf = MultinomialNB(alpha=0.001)
-text_clf = check_performance(vect, clf)
-
-# print("lemma_tokenizer and max_df=0.5 and alpha=0.001")
-# vect = TfidfVectorizer(ngram_range=(1,3), lowercase=True, tokenizer=lemma_tokenizer, max_df=0.5, stop_words="english")
-# text_clf = check_performance(vect, clf)
-
 ### Feature Selection ###
-# Feature_selections to try: SelectFromModel and SelectKBest
+# Feature_selections to try: SelectKBest, SelectFromModel
 # score_func for classification: chi2, f_classif, mutual_info_classif
 
+print("SelectKBest chi, k=20")
+select = SelectKBest(chi2, k=20)
+text_clf = check_performance(vect, clf, select)
+# parameters = {
+#     'vect__ngram_range': [(1, 1), (1, 2), (2, 2), (1, 3), (3, 3), (1, 4), (4, 4)],
+#     'vect__max_df': [0.5, 0.7, 0.9],
+#     'select__k': [10, 20, 30, 40, 50, "all"],
+#     'clf__alpha': (1e-2, 1e-3),
+# }
+# gs_clf = GridSearchCV(text_clf, parameters, cv=5, n_jobs=-1)
+# gs_clf = gs_clf.fit(twenty_train.data, twenty_train.target)
+# for param_name in sorted(parameters.keys()):
+#     print("%s: %r" % (param_name, gs_clf.best_params_[param_name]))
+
+# print("SelectKBest chi, k=all")
+# select = SelectKBest(chi2, k='all')
+# text_clf = check_performance(vect, clf, select)
+
+# print("SelectKBest f_classif, k=all")
+# select = SelectKBest(f_classif, k='all')
+# text_clf = check_performance(vect, clf, select)
+
+print("SelectFromModel LinearSVC penalty=11")
+select = SelectFromModel(LinearSVC(penalty="l1", dual=False, tol=1e-3))
+text_clf = check_performance(vect, clf, select)
+
+print("Variance Threshold")
+select = VarianceThreshold()
+text_clf = check_performance(vect, clf, select)
+# parameters = {
+#     #'vect__ngram_range': [(1, 1), (1, 2), (2, 2), (1, 3), (3, 3), (1, 4), (4, 4)],
+#     #'vect__max_df': [0.5, 0.7, 0.9],
+#     'select__threshold': [0.0005, 0.001, 0.0015, 0.002, 0.003, 0.004, 0.005, 0.01],
+#     #'clf__alpha': (1e-2, 1e-3),
+# }
+# gs_clf = GridSearchCV(text_clf, parameters, cv=5, n_jobs=-1)
+# gs_clf = gs_clf.fit(twenty_train.data, twenty_train.target)
+# for param_name in sorted(parameters.keys()):
+#     print("%s: %r" % (param_name, gs_clf.best_params_[param_name]))
+
+# print("Variance Threshold and threshold=0.0005")
+# select = VarianceThreshold(threshold=0.0005)
+# text_clf = check_performance(vect, clf, select)
+
+# -----
+
+### Logistic Regression ###
+
+print("\nLR")
+# penalty
+# dual
+# tol
+# C
+# fit_intercept
+# intercept_scaling
+# class_weight
+# solver
+# max_iter
+# multi_class
+# verbose
+# warm_start
+# n_jobs
+# l1_ratio
+
+print("penalty=l2")
+print(vect)
+clf = LogisticRegression()
+text_clf = check_performance(vect, clf)
+
+# print("penalty=l1")
+# clf = LogisticRegression(penalty='l1')
+# text_clf = check_performance(vect, clf)
+
+# parameters = {
+#     #'vect__ngram_range': [(1, 1), (1, 2), (2, 2), (1, 3), (3, 3), (1, 4), (4, 4)],
+#     #'vect__max_df': [0.5, 0.7, 0.9],
+#     #'clf__alpha': (1e-2, 1e-3),
+# }
+# gs_clf = GridSearchCV(text_clf, parameters, cv=5, n_jobs=-1)
+# gs_clf = gs_clf.fit(twenty_train.data, twenty_train.target)
+# for param_name in sorted(parameters.keys()):
+#     print("%s: %r" % (param_name, gs_clf.best_params_[param_name]))
+
+
+'''
 # NB C4
 estimator = DecisionTreeClassifier()
 c = chi2 # chi2, f_classif, mutual_info_classif
@@ -232,36 +331,11 @@ try_features = [SelectPercentile(c), SelectKBest(c), SelectFpr(c), SelectFromMod
 # gs_clf = gs_clf.fit(twenty_train.data, twenty_train.target)
 # for param_name in sorted(parameters.keys()):
 #     print("%s: %r" % (param_name, gs_clf.best_params_[param_name]))
+'''
 
 ### More Hyperparameters Tuning ##
 
 # -----
-
-# LR C1
-text_clf = Pipeline([
-    ('vect', CountVectorizer()), # vector
-    ('tfidf', TfidfTransformer()), # transformer
-    ('clf', LogisticRegression()), # classifier
-])
-text_clf.fit(twenty_train.data, twenty_train.target)
-predicted = text_clf.predict(docs_test)
-info = precision_recall_fscore_support(twenty_evaluation.target, predicted, average='macro')
-result = ",".join(map(str,info[:-1]))
-print("LR,UB," + result + "\n")
-# penalty
-# dual
-# tol
-# C
-# fit_intercept
-# intercept_scaling
-# class_weight
-# solver
-# max_iter
-# multi_class
-# verbose
-# warm_start
-# n_jobs
-# l1_ratio
 
 # parameters = {
 #     'vect__ngram_range': [(1, 1), (1, 2), (2, 2), (1, 3), (3, 3), (1, 4), (4, 4)],
