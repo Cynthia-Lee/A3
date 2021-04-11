@@ -6,6 +6,7 @@
 
 from sklearn.datasets import load_files
 from sklearn.feature_extraction.text import CountVectorizer, TfidfTransformer, TfidfVectorizer
+from sklearn.feature_extraction import DictVectorizer
 from sklearn.metrics import precision_recall_fscore_support
 from sklearn.feature_extraction._stop_words import ENGLISH_STOP_WORDS
 import nltk
@@ -24,12 +25,14 @@ nltk.download('punkt')
 from sklearn.naive_bayes import BernoulliNB, MultinomialNB
 from sklearn.pipeline import Pipeline
 import numpy as np
-from sklearn.linear_model import SGDClassifier, LogisticRegression
+from sklearn.linear_model import SGDClassifier, LogisticRegression, LogisticRegressionCV, RidgeClassifier
+from sklearn.preprocessing import StandardScaler, OneHotEncoder, LabelEncoder, Normalizer
 from sklearn import metrics
 from sklearn.model_selection import GridSearchCV
 from sklearn.feature_selection import GenericUnivariateSelect, SelectPercentile, SelectKBest, SelectFpr, SelectFromModel, SelectFwe, SequentialFeatureSelector, RFE, RFECV, VarianceThreshold, chi2, f_classif, mutual_info_classif
 from sklearn.tree import DecisionTreeClassifier
 from sklearn.svm import LinearSVC
+from sklearn.decomposition import PCA
 
 ### Dataset ###
 # Header
@@ -119,19 +122,25 @@ def lemma_tokenizer(text):
 
 # -----
 
-def check_performance(vect, clf, select=None):
-    if (select):
-        text_clf = Pipeline([
-            ('vect', vect), # vector
-            ('select', select), # feature selector
-            ('clf', clf), # classifier
-        ])
+def check_performance(vect, clf, select=None, scaler=None): #, encoder=None):
+    X = twenty_train.data
+    y = twenty_train.target
+    pipe = []
+    # if (encoder):
+    #     pipe.append(('encoder', encoder))
+    #     # X = np.array(X).reshape(-1, 1)
+    #     # pipe.append(('normal', Normalizer()))
+    if (scaler):
+        pipe.append(('scaler', scaler))
+        pipe.append(('pca', PCA(n_components=2)))
     else:
-        text_clf = Pipeline([
-            ('vect', vect), # vector
-            ('clf', clf), # classifier
-        ])
-    text_clf.fit(twenty_train.data, twenty_train.target)
+        pipe.append(('vect', vect))
+    if (select):
+        pipe.append(('select', select))
+    pipe.append(('clf', clf))
+    # print(pipe)
+    text_clf = Pipeline(pipe)
+    text_clf.fit(X, y)
     predicted = text_clf.predict(docs_test)
     info = precision_recall_fscore_support(twenty_evaluation.target, predicted, average='macro')
     result = ",".join(map(str,info[:-1]))
@@ -141,7 +150,7 @@ def check_performance(vect, clf, select=None):
 # -----
 
 ### NB ###
-
+'''
 print("NB")
 clf = MultinomialNB()
 
@@ -215,9 +224,9 @@ text_clf = check_performance(vect, clf)
 # Feature_selections to try: SelectKBest, SelectFromModel
 # score_func for classification: chi2, f_classif, mutual_info_classif
 
-print("SelectKBest chi, k=20")
-select = SelectKBest(chi2, k=20)
-text_clf = check_performance(vect, clf, select)
+# print("SelectKBest chi, k=20")
+# select = SelectKBest(chi2, k=20)
+# text_clf = check_performance(vect, clf, select)
 # parameters = {
 #     'vect__ngram_range': [(1, 1), (1, 2), (2, 2), (1, 3), (3, 3), (1, 4), (4, 4)],
 #     'vect__max_df': [0.5, 0.7, 0.9],
@@ -237,8 +246,16 @@ text_clf = check_performance(vect, clf, select)
 # select = SelectKBest(f_classif, k='all')
 # text_clf = check_performance(vect, clf, select)
 
+print("SelectFromModel LinearSVC")
+select = SelectFromModel(LinearSVC())
+text_clf = check_performance(vect, clf, select)
+
 print("SelectFromModel LinearSVC penalty=11")
 select = SelectFromModel(LinearSVC(penalty="l1", dual=False, tol=1e-3))
+text_clf = check_performance(vect, clf, select)
+
+print("SelectFromModel SGD penalty=11")
+select = SelectFromModel(SGDClassifier())
 text_clf = check_performance(vect, clf, select)
 
 print("Variance Threshold")
@@ -254,16 +271,16 @@ text_clf = check_performance(vect, clf, select)
 # gs_clf = gs_clf.fit(twenty_train.data, twenty_train.target)
 # for param_name in sorted(parameters.keys()):
 #     print("%s: %r" % (param_name, gs_clf.best_params_[param_name]))
-
-# print("Variance Threshold and threshold=0.0005")
-# select = VarianceThreshold(threshold=0.0005)
-# text_clf = check_performance(vect, clf, select)
-
+'''
 # -----
 
 ### Logistic Regression ###
 
 print("\nLR")
+
+vect = TfidfVectorizer(ngram_range=(1, 4), lowercase=True, tokenizer=tokenize_and_lemma, max_df=0.5)
+print(vect)
+
 # penalty
 # dual
 # tol
@@ -279,14 +296,86 @@ print("\nLR")
 # n_jobs
 # l1_ratio
 
-print("penalty=l2")
-print(vect)
-clf = LogisticRegression()
+# solver{'newton-cg', 'lbfgs', 'liblinear', 'sag', 'saga'}, default='lbfgs'
+
+# print("liblinear penalty=l1")
+# clf = LogisticRegression(solver="liblinear", penalty="l1")
+# text_clf = check_performance(vect, clf)
+
+# print("liblinear penalty=l2")
+# clf = LogisticRegression(solver="liblinear", penalty="l2")
+# text_clf = check_performance(vect, clf)
+
+# print("liblinear penalty=l2 dual=True")
+# clf = LogisticRegression(solver="liblinear", penalty="l2", dual=True)
+# text_clf = check_performance(vect, clf)
+
+scaler = StandardScaler(with_mean=False) # sparse matrices
+encoder = OneHotEncoder()
+
+# print("lbfgs") #penalty=l2
+# clf = LogisticRegression(solver="lbfgs")
+# text_clf = check_performance(vect, clf)
+
+# print("lbfgs and scaler") #penalty=l2
+# clf = LogisticRegression(solver="lbfgs")
+# text_clf = check_performance(vect, clf, None, scaler)
+# parameters = {
+#     'clf__max_iter': [100, 200, 300, 400],
+# }
+# gs_clf = GridSearchCV(text_clf, parameters, cv=5, n_jobs=-1)
+# gs_clf = gs_clf.fit(twenty_train.data, twenty_train.target)
+# for param_name in sorted(parameters.keys()):
+#     print("%s: %r" % (param_name, gs_clf.best_params_[param_name]))
+
+# print("lbfgs class_weight=balanced") #penalty=l2
+# clf = LogisticRegression(solver="lbfgs", class_weight="balanced")
+# text_clf = check_performance(vect, clf)
+
+print("newton-cg") #penalty=l2
+clf = LogisticRegression(solver="newton-cg")
 text_clf = check_performance(vect, clf)
 
-# print("penalty=l1")
-# clf = LogisticRegression(penalty='l1')
+# print("newton-cg class_weight=balanced") #penalty=l2
+# clf = LogisticRegression(solver="newton-cg", class_weight="balanced")
 # text_clf = check_performance(vect, clf)
+
+print("sag") #penalty=l2
+clf = LogisticRegression(solver="sag")
+text_clf = check_performance(vect, clf)
+
+# print("sag multi_class=multinomial and scaler") #penalty=l2
+# clf = LogisticRegression(solver="sag", multi_class="multinomial")
+# text_clf = check_performance(vect, clf, None, scaler)
+# parameters = {
+#     'clf__C': [.001, .01, .1, 1, 10, 100, 1000],
+# }
+# gs_clf = GridSearchCV(text_clf, parameters, cv=5, n_jobs=-1)
+# gs_clf = gs_clf.fit(twenty_train.data, twenty_train.target)
+# for param_name in sorted(parameters.keys()):
+#     print("%s: %r" % (param_name, gs_clf.best_params_[param_name]))
+
+# print("sag class_weight=balanced") #penalty=l2
+# clf = LogisticRegression(solver="sag", class_weight="balanced")
+# text_clf = check_performance(vect, clf)
+
+# print("saga and scaler") #penalty=elasticnet
+# clf = LogisticRegression(solver="saga")
+# text_clf = check_performance(vect, clf, None, scaler)
+
+print("saga penalty=elasticnet") #penalty=elasticnet
+clf = LogisticRegression(solver="saga", penalty="elasticnet", l1_ratio=0.5)
+text_clf = check_performance(vect, clf)
+
+# print("saga l1_ratio=1")
+# clf = LogisticRegression(solver="saga", l1_ratio=1)
+# text_clf = check_performance(vect, clf)
+
+
+
+
+
+
 
 # parameters = {
 #     #'vect__ngram_range': [(1, 1), (1, 2), (2, 2), (1, 3), (3, 3), (1, 4), (4, 4)],
@@ -299,11 +388,10 @@ text_clf = check_performance(vect, clf)
 #     print("%s: %r" % (param_name, gs_clf.best_params_[param_name]))
 
 
-'''
 # NB C4
-estimator = DecisionTreeClassifier()
-c = chi2 # chi2, f_classif, mutual_info_classif
-try_features = [SelectPercentile(c), SelectKBest(c), SelectFpr(c), SelectFromModel(estimator), SelectFwe(c), VarianceThreshold()]
+# estimator = DecisionTreeClassifier()
+# c = chi2 # chi2, f_classif, mutual_info_classif
+# try_features = [SelectPercentile(c), SelectKBest(c), SelectFpr(c), SelectFromModel(estimator), SelectFwe(c), VarianceThreshold()]
 # RFE(estimator), RFECV(estimator), SequentialFeatureSelector(estimator, cv=2)
 # lsvc = LinearSVC(C=0.01, penalty="l1", dual=False)
 # model = SelectFromModel(lsvc)
@@ -331,7 +419,6 @@ try_features = [SelectPercentile(c), SelectKBest(c), SelectFpr(c), SelectFromMod
 # gs_clf = gs_clf.fit(twenty_train.data, twenty_train.target)
 # for param_name in sorted(parameters.keys()):
 #     print("%s: %r" % (param_name, gs_clf.best_params_[param_name]))
-'''
 
 ### More Hyperparameters Tuning ##
 
