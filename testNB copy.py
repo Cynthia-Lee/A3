@@ -83,8 +83,17 @@ for i in range(len(twenty_evaluation.data)):
 # TfidfVectorizer equivalent to CountVectorizer followed by TfidfTransformer
 
 # stemming
+# def readFile(fileName):
+#     fileObj = open(fileName, "r") #opens the file in read mode
+#     words = fileObj.read().splitlines() #puts the file into an array
+#     fileObj.close()
+#     return words
+# corenlp_stop_words = (readFile("corenlp"))
+
 nltk_stop_words = stopwords.words('english')
 my_stop_words = set(stopwords.words('english')).union(set(ENGLISH_STOP_WORDS))
+# my_stop_words = set(nltk_stop_words).union(set(corenlp_stop_words))
+
 stemmer = SnowballStemmer("english") # stemmer = SnowballStemmer("english", ignore_stopwords=True)
 lemma = WordNetLemmatizer()
 
@@ -106,8 +115,8 @@ def tokenize_and_lemma(text):
         if re.search('[a-zA-Z]', token): # ignore non-letters
             filtered_tokens.append(token)
     #exclude stopwords from lemma words
-    stems = [lemma.lemmatize(t) for t in filtered_tokens if t not in my_stop_words]
-    return stems
+    lemmas = [lemma.lemmatize(t) for t in filtered_tokens if t not in my_stop_words]
+    return lemmas
 
 # print(tokenize_and_stem("don't stop the running of ran"))
 
@@ -164,6 +173,8 @@ vect = CountVectorizer(lowercase=True, stop_words=nltk_stop_words, max_df=0.5)
 clf = MultinomialNB()
 select = SelectPercentile()
 text_clf = check_performance(vect, clf, select)
+
+print("test my stop word")
 vect = CountVectorizer(lowercase=True, stop_words=my_stop_words, max_df=0.5)
 clf = MultinomialNB()
 select = SelectPercentile()
@@ -217,15 +228,27 @@ text_clf = check_performance(vect, clf, select)
 # text_clf = check_performance(vect, clf, select)
 
 print("best?")
+
+print("og stopwords")
 vect = TfidfVectorizer(lowercase=True, stop_words=nltk_stop_words, max_df=0.5, ngram_range=(1,2))
 clf = MultinomialNB(alpha=0.001)
 text_clf = check_performance(vect, clf)
-
-vect = TfidfVectorizer(lowercase=True, max_df=0.5, ngram_range=(1,2), tokenizer=lemma_tokenizer)
+vect = TfidfVectorizer(lowercase=True, stop_words="english", max_df=0.5, ngram_range=(1,2))
 clf = MultinomialNB(alpha=0.001)
 text_clf = check_performance(vect, clf)
 
-vect = TfidfVectorizer(lowercase=True, max_df=0.5, ngram_range=(1,3), tokenizer=lemma_tokenizer)
+print("my stopwords")
+vect = TfidfVectorizer(lowercase=True, stop_words=my_stop_words, max_df=0.5, ngram_range=(1,2))
+clf = MultinomialNB(alpha=0.001)
+text_clf = check_performance(vect, clf)
+print("---")
+
+# vect = TfidfVectorizer(lowercase=True, max_df=0.5, stop_words="english", ngram_range=(1,2), tokenizer=lemma_tokenizer)
+# clf = MultinomialNB(alpha=0.001)
+# text_clf = check_performance(vect, clf)
+
+print("tokenize_and_lemma") # final?
+vect = TfidfVectorizer(lowercase=True, max_df=0.5, ngram_range=(1,3), tokenizer=tokenize_and_lemma)
 clf = MultinomialNB(alpha=0.001)
 text_clf = check_performance(vect, clf)
 # parameters = {
@@ -240,9 +263,6 @@ text_clf = check_performance(vect, clf)
 # for param_name in sorted(parameters.keys()):
 #     print("%s: %r" % (param_name, gs_clf.best_params_[param_name]))
 
-vect = TfidfVectorizer(lowercase=True, stop_words=my_stop_words, max_df=0.5, ngram_range=(1,2))
-clf = MultinomialNB(alpha=0.001)
-text_clf = check_performance(vect, clf)
 # parameters = {
 #     'vect__ngram_range': [(1, 1), (1, 2), (2, 2), (1, 3), (3, 3), (1, 4), (4, 4)],
 #     'vect__max_df': [0.5, 0.7, 0.9],
