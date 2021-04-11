@@ -64,7 +64,7 @@ if __name__ == '__main__':
         ('clf', MultinomialNB()), # classifier
     ])
     text_clf.fit(twenty_train.data, twenty_train.target)
-    predicted = text_clf.predict(docs_test)
+    predicted = text_clf.predict(docs_test) # twenty_evaluation.data
     # print(np.mean(predicted == twenty_evaluation.target)) # accuracy
     info = precision_recall_fscore_support(twenty_evaluation.target, predicted, average='macro')
     # precision, # recall, fbeta_score, support
