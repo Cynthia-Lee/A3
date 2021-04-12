@@ -508,10 +508,13 @@ if __name__ == '__main__':
 
     configurations = mbc_exploration(twenty_train, twenty_evaluation)
 
-    for config in configurations:
+    for config in configurations[:-1]:
         classification = config[0]
         c1 = (config[1])[1]
-        f.write(classification + " " + c1 + "\n")
+        f.write(classification + "," + c1 + "\n")
+    classification = configurations[-1][0]
+    c1 = (configurations[-1])[1][1]
+    f.write(classification + "," + c1)
     f.close()
 
 
