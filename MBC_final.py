@@ -41,10 +41,6 @@ if __name__ == '__main__':
     nb_c1 = (text_clf, check_performance(twenty_evaluation, text_clf))
 
     print(nb_c1)
-    # c1 = (config[1])[1]
-    # f.write(classification + ",C1," + c1 + "\n")
-    # print(config[1])
-    # print(c1)
-    # print("---")
-
+    c1 = nb_c1[1]
+    f.write("NB" + ",C1," + c1)
     f.close()

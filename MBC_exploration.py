@@ -107,12 +107,13 @@ def clf_pipe(twenty_train, vect, clf, select=None):
     return text_clf
 
 def check_performance(twenty_evaluation, text_clf): #, scaler=None): #, encoder=None):
-    global test_number
-    test_number += 1
+    # global test_number
+    # test_number += 1
     predicted = text_clf.predict(twenty_evaluation.data) # twenty_evaluation.data
     info = precision_recall_fscore_support(twenty_evaluation.target, predicted, average='macro')
     result = ",".join(map(str,info[:-1]))
-    print("Test " + str(test_number) + ": " + result)
+    # print("Test " + str(test_number) + ": " + result)
+    print(result)
     return result
 
 def mbc_exploration(twenty_train, twenty_evaluation):
