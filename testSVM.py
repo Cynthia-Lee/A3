@@ -198,18 +198,18 @@ print("sigmoid")
 vect = TfidfVectorizer(lowercase=True, stop_words=my_stop_words, ngram_range=(1,2))
 clf = SVC(kernel="sigmoid", C=10)
 text_clf = check_performance(vect, clf)
-parameters = {
-    # 'clf__alpha': (1.0000000000000001e-05, 9.9999999999999995e-07),
-    # 'clf__max_iter': (10, 50, 80),
-    # 'clf__penalty': ('l2', 'elasticnet'),
-    # 'vect__max_df': (0.5, 0.75, 1.0),
-    # 'vect__max_features': (None, 5000, 10000, 50000)
-    'clf__C': [.001, .01, .1, 1, 10, 100, 1000]
- }
-gs_clf = GridSearchCV(text_clf, parameters, cv=5, n_jobs=-1)
-gs_clf = gs_clf.fit(twenty_train.data, twenty_train.target)
-for param_name in sorted(parameters.keys()):
-    print("%s: %r" % (param_name, gs_clf.best_params_[param_name]))
+# parameters = {
+#     # 'clf__alpha': (1.0000000000000001e-05, 9.9999999999999995e-07),
+#     # 'clf__max_iter': (10, 50, 80),
+#     # 'clf__penalty': ('l2', 'elasticnet'),
+#     # 'vect__max_df': (0.5, 0.75, 1.0),
+#     # 'vect__max_features': (None, 5000, 10000, 50000)
+#     'clf__C': [.001, .01, .1, 1, 10, 100, 1000]
+#  }
+# gs_clf = GridSearchCV(text_clf, parameters, cv=5, n_jobs=-1)
+# gs_clf = gs_clf.fit(twenty_train.data, twenty_train.target)
+# for param_name in sorted(parameters.keys()):
+#     print("%s: %r" % (param_name, gs_clf.best_params_[param_name]))
 
 # vect = TfidfVectorizer(lowercase=True, stop_words=my_stop_words, ngram_range=(1,2))
 # clf = SVC(kernel="sigmoid", C=100)
