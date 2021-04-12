@@ -53,6 +53,19 @@ if __name__ == '__main__':
     twenty_evaluation = load_files(evaluation_folder, categories=categories, shuffle=True, random_state=42, encoding='latin1')
     docs_test = twenty_evaluation.data
 
+    ### Preprocessing ###
+    # remove headers
+    def remove_header(text):
+        index = text.find("\n\n")
+        text = text[index:]
+        return text
+    for i in range(len(twenty_train.data)):
+        text = twenty_train.data[i]
+        twenty_train.data[i] = remove_header(text)
+    for i in range(len(twenty_evaluation.data)):
+        text = twenty_evaluation.data[i]
+        twenty_evaluation.data[i] = remove_header(text)
+
     f = open(output, "w")
 
     # -----
