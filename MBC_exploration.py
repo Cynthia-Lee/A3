@@ -41,404 +41,474 @@ import sys
 # Body
     # The main body of the document. This is where you should extract features from.
 
-### Loading the 20 newsgroups dataset ### 
-categories = ['rec.sport.hockey', 'sci.med', 'soc.religion.christian', 'talk.religion.misc']
-train_folder = ".\Selected 20NewsGroup\Training"
-evaluation_folder = ".\Selected 20NewsGroup\Evaluation"
-
-twenty_train = load_files(train_folder, categories=categories, shuffle=True, random_state=42, encoding='latin1')
-twenty_evaluation = load_files(evaluation_folder, categories=categories, shuffle=True, random_state=42, encoding='latin1')
-docs_test = twenty_evaluation.data
-# print(len(twenty_train.data)) # 2170
-# print(len(twenty_evaluation.data)) # 721
-
-### Preprocessing ###
-
-# remove headers
 def remove_header(text):
     index = text.find("\n\n")
     text = text[index:]
     return text
 
-for i in range(len(twenty_train.data)):
-    text = twenty_train.data[i]
-    twenty_train.data[i] = remove_header(text)
-for i in range(len(twenty_evaluation.data)):
-    text = twenty_evaluation.data[i]
-    twenty_evaluation.data[i] = remove_header(text)
-
-# clean text: remove numbers, punctuation, space, url, email (not implemented yet)
-
-### Feature Extraction ###
-
-# Text preprocessing, tokenizing and filtering of stopwords are all included in CountVectorizer, which builds a dictionary of features
-# Feature Extractors
-# 1. CountVectorizer - Uses the number of times each word was observed.
-# 2. TFIDFVectorizer - Uses relative frequencies normalized by the inverse of the number of documents in which the word was observed
-# Preprocessing
-# a. lower case and filter out stopwords
-# b. apply stemming
-
-# TfidfVectorizer equivalent to CountVectorizer followed by TfidfTransformer
-
-# stemming
-nltk_stop_words = stopwords.words('english')
-my_stop_words = set(stopwords.words('english')).union(set(ENGLISH_STOP_WORDS))
-stemmer = SnowballStemmer("english") # stemmer = SnowballStemmer("english", ignore_stopwords=True)
-lemma = WordNetLemmatizer()
-
-def tokenize_and_stem(text):
-    tokens = [word for sent in nltk.sent_tokenize(text) for word in nltk.word_tokenize(sent)]
-    filtered_tokens = []
-    for token in tokens:
-        if re.search('[a-zA-Z]', token): # ignore non-letters
-            filtered_tokens.append(token)
-    #exclude stopwords from stemmed words
-    stems = [stemmer.stem(t) for t in filtered_tokens if t not in my_stop_words]
-    return stems
-
-def tokenize_and_lemma(text):
-    tokens = [word for sent in nltk.sent_tokenize(text) for word in nltk.word_tokenize(sent)]
-    filtered_tokens = []
-    for token in tokens:
-        if re.search('[a-zA-Z]', token): # ignore non-letters
-            filtered_tokens.append(token)
-    #exclude stopwords from lemma words
-    stems = [lemma.lemmatize(t) for t in filtered_tokens if t not in my_stop_words]
-    return stems
-
-def stemming_tokenizer(text):
-    return [stemmer.stem(w) for w in word_tokenize(text) if w not in ENGLISH_STOP_WORDS]
-
-def lemma_tokenizer(text):
-    return [lemma.lemmatize(w) for w in word_tokenize(text) if w not in ENGLISH_STOP_WORDS]
-
 # make sure that you preprocess your stop list to make sure that it is normalised like your tokens will be,
 # and pass the list of normalised words as stop_words to the vectoriser.
 
-# -----
+def mbc_exploration(categories, train_folder, evaluation_folder):
+    ### Loading the 20 newsgroups dataset ### 
+    twenty_train = load_files(train_folder, categories=categories, shuffle=True, random_state=42, encoding='latin1')
+    twenty_evaluation = load_files(evaluation_folder, categories=categories, shuffle=True, random_state=42, encoding='latin1')
+    docs_test = twenty_evaluation.data
+    # print(len(twenty_train.data)) # 2170
+    # print(len(twenty_evaluation.data)) # 721
 
-global test_number
-test_number = 0
+    ### Preprocessing ###
+    # remove headers
+    for i in range(len(twenty_train.data)):
+        text = twenty_train.data[i]
+        twenty_train.data[i] = remove_header(text)
+    for i in range(len(twenty_evaluation.data)):
+        text = twenty_evaluation.data[i]
+        twenty_evaluation.data[i] = remove_header(text)
 
-def check_performance(vect, clf, select=None): #, scaler=None): #, encoder=None):
-    X = twenty_train.data
-    y = twenty_train.target
-    pipe = []
+    # clean text: remove numbers, punctuation, space, url, email (not implemented yet)
+
+    ### Feature Extraction ###
+    # Text preprocessing, tokenizing and filtering of stopwords are all included in CountVectorizer, which builds a dictionary of features
+    # Feature Extractors
+    # 1. CountVectorizer - Uses the number of times each word was observed.
+    # 2. TFIDFVectorizer - Uses relative frequencies normalized by the inverse of the number of documents in which the word was observed
+    # Preprocessing
+    # a. lower case and filter out stopwords
+    # b. apply stemming
+
+    # TfidfVectorizer equivalent to CountVectorizer followed by TfidfTransformer
+
+    nltk_stop_words = stopwords.words('english')
+    my_stop_words = set(stopwords.words('english')).union(set(ENGLISH_STOP_WORDS))    
+    stemmer = SnowballStemmer("english")
+    lemma = WordNetLemmatizer()
+
+    def tokenize_and_stem(text):
+        tokens = [word for sent in nltk.sent_tokenize(text) for word in nltk.word_tokenize(sent)]
+        filtered_tokens = []
+        for token in tokens:
+            if re.search('[a-zA-Z]', token): # ignore non-letters
+                filtered_tokens.append(token)
+        #exclude stopwords from stemmed words
+        stems = [stemmer.stem(t) for t in filtered_tokens if t not in my_stop_words]
+        return stems
+
+    def tokenize_and_lemma(text):
+        tokens = [word for sent in nltk.sent_tokenize(text) for word in nltk.word_tokenize(sent)]
+        filtered_tokens = []
+        for token in tokens:
+            if re.search('[a-zA-Z]', token): # ignore non-letters
+                filtered_tokens.append(token)
+        #exclude stopwords from lemma words
+        stems = [lemma.lemmatize(t) for t in filtered_tokens if t not in my_stop_words]
+        return stems
+
+    def stemming_tokenizer(text):
+        stemmer = SnowballStemmer("english", ignore_stopwords=True)
+        return [stemmer.stem(w) for w in word_tokenize(text) if w not in ENGLISH_STOP_WORDS]
+
+    def lemma_tokenizer(text):
+        return [lemma.lemmatize(w) for w in word_tokenize(text) if w not in ENGLISH_STOP_WORDS]
+
+    # -----
+
     global test_number
-    test_number += 1
-    # if (encoder):
-    #     pipe.append(('encoder', encoder))
-    #     # X = np.array(X).reshape(-1, 1)
-    #     # pipe.append(('normal', Normalizer()))
-    # if (scaler):
-    #     pipe.append(('scaler', scaler))
-    #     pipe.append(('pca', PCA(n_components=2)))
-    # else:
-    pipe.append(('vect', vect))
-    if (select):
-        pipe.append(('select', select))
-    pipe.append(('clf', clf))
-    text_clf = Pipeline(pipe)
-    text_clf.fit(X, y)
-    predicted = text_clf.predict(docs_test)
-    info = precision_recall_fscore_support(twenty_evaluation.target, predicted, average='macro')
-    result = ",".join(map(str,info[:-1]))
-    print("Test " + str(test_number) + ": " + result)
-    return text_clf
+    test_number = 0
 
-# -----
+    def clf_pipe(vect, clf, select=None):
+        X = twenty_train.data
+        y = twenty_train.target
+        pipe = []
+        # if (encoder):
+        #     pipe.append(('encoder', encoder))
+        #     # X = np.array(X).reshape(-1, 1)
+        #     # pipe.append(('normal', Normalizer()))
+        # if (scaler):
+        #     pipe.append(('scaler', scaler))
+        #     pipe.append(('pca', PCA(n_components=2)))
+        # else:
+        pipe.append(('vect', vect))
+        if (select):
+            pipe.append(('select', select))
+        pipe.append(('clf', clf))
+        text_clf = Pipeline(pipe)
+        text_clf.fit(X, y)
+        # predicted = text_clf.predict(docs_test)
+        # info = precision_recall_fscore_support(twenty_evaluation.target, predicted, average='macro')
+        # result = ",".join(map(str,info[:-1]))
+        # print("Test " + str(test_number) + ": " + result)
+        return text_clf
 
-### NB ###
+    def check_performance(text_clf): #, scaler=None): #, encoder=None):
+        global test_number
+        test_number += 1
+        predicted = text_clf.predict(docs_test)
+        info = precision_recall_fscore_support(twenty_evaluation.target, predicted, average='macro')
+        result = ",".join(map(str,info[:-1]))
+        print("Test " + str(test_number) + ": " + result)
+        return result
 
-print("NB")
-clf = MultinomialNB()
+    # -----
 
-# Trying Feature Selection
-# vect = CountVectorizer()
-# select = SelectPercentile()
-# text_clf = check_performance(vect, clf, select)
+    ### NB ###
 
-# stop_words improve a bit and grid searched for max_df
-# vect = CountVectorizer(lowercase=True, stop_words=nltk_stop_words, max_df=0.5)
-# select = SelectPercentile()
-# text_clf = check_performance(vect, clf, select)
+    print("NB")
+    clf = MultinomialNB()
 
-# test my_stop_words
-# vect = CountVectorizer(lowercase=True, stop_words=my_stop_words, max_df=0.5)
-# select = SelectPercentile()
-# text_clf = check_performance(vect, clf, select)
+    # Trying Feature Selection
+    # vect = CountVectorizer()
+    # select = SelectPercentile()
+    # text_clf = clf_pipe(vect, clf, select)
+    # check_performance(text_clf)
 
-# test nltk_stop_words with hyperparameters tuned
-# vect = CountVectorizer(lowercase=True, stop_words=nltk_stop_words, max_df=0.5, ngram_range=(1,2))
-# clf = MultinomialNB(alpha=0.001)
-# select = SelectPercentile(percentile=60)
-# text_clf = check_performance(vect, clf, select)
+    # stop_words improve a bit and grid searched for max_df
+    # vect = CountVectorizer(lowercase=True, stop_words=nltk_stop_words, max_df=0.5)
+    # select = SelectPercentile()
+    # text_clf = clf_pipe(vect, clf, select)
+    # check_performance(text_clf)
 
-# test my_stop_words with hyperparameters tuned
-# vect = CountVectorizer(lowercase=True, stop_words=my_stop_words, max_df=0.5, ngram_range=(1,2))
-# clf = MultinomialNB(alpha=0.001)
-# select = SelectPercentile(percentile=60)
-# text_clf = check_performance(vect, clf, select)
+    # test my_stop_words
+    # vect = CountVectorizer(lowercase=True, stop_words=my_stop_words, max_df=0.5)
+    # select = SelectPercentile()
+    # text_clf = clf_pipe(vect, clf, select)
+    # check_performance(text_clf)
 
-# try tokenize_and_lemma
-# vect = TfidfVectorizer(lowercase=True, tokenizer=tokenize_and_lemma)
-# text_clf = check_performance(vect, clf)
+    # test nltk_stop_words with hyperparameters tuned
+    # vect = CountVectorizer(lowercase=True, stop_words=nltk_stop_words, max_df=0.5, ngram_range=(1,2))
+    # clf = MultinomialNB(alpha=0.001)
+    # select = SelectPercentile(percentile=60)
+    # text_clf = clf_pipe(vect, clf, select)
+    # check_performance(text_clf)
 
-# 2nd best configuration (no lemma)
-vect = TfidfVectorizer(lowercase=True, stop_words=my_stop_words, max_df=0.5, ngram_range=(1,2))
-clf = MultinomialNB(alpha=0.001)
-nb_c2 = check_performance(vect, clf)
+    # test my_stop_words with hyperparameters tuned
+    # vect = CountVectorizer(lowercase=True, stop_words=my_stop_words, max_df=0.5, ngram_range=(1,2))
+    # clf = MultinomialNB(alpha=0.001)
+    # select = SelectPercentile(percentile=60)
+    # text_clf = clf_pipe(vect, clf, select)
+    # check_performance(text_clf)
 
-# best configuration (lemma)
-vect = TfidfVectorizer(lowercase=True, tokenizer=tokenize_and_lemma, max_df=0.5, ngram_range=(1,3))
-clf = MultinomialNB(alpha=0.001)
-nb_c1 = check_performance(vect, clf)
+    # try tokenize_and_lemma
+    # vect = TfidfVectorizer(lowercase=True, tokenizer=tokenize_and_lemma)
+    # text_clf = clf_pipe(vect, clf)
+    # check_performance(text_clf)
 
-# parameters = {
-#     'vect__ngram_range': [(1, 1), (1, 2), (2, 2), (1, 3), (3, 3), (1, 4)],
-#     #'vect__max_features': (None, 5000, 10000, 50000),
-#     #'vect__max_df': [0.5, 0.7, 0.9],
-#     #'vect__sublinear_tf': [True, False],
-#     'vect__min_df': [1, 5],
-#     'clf__alpha': (1e-2, 1e-3),
-# }
-# gs_clf = GridSearchCV(text_clf, parameters, cv=5, n_jobs=-1)
-# gs_clf = gs_clf.fit(twenty_train.data, twenty_train.target)
-# for param_name in sorted(parameters.keys()):
-#     print("%s: %r" % (param_name, gs_clf.best_params_[param_name]))
+    # 2nd best configuration (no lemma)
+    vect = TfidfVectorizer(lowercase=True, stop_words=my_stop_words, max_df=0.5, ngram_range=(1,2))
+    clf = MultinomialNB(alpha=0.001)
+    text_clf = clf_pipe(vect, clf)
+    nb_c2 = check_performance(text_clf)
 
-# Other tests:
+    # best configuration (lemma)
+    vect = TfidfVectorizer(lowercase=True, tokenizer=tokenize_and_lemma, max_df=0.5, ngram_range=(1,3))
+    clf = MultinomialNB(alpha=0.001)
+    text_clf = clf_pipe(vect, clf)
+    nb_c1 = check_performance(text_clf)
 
-# Feature_selections to try: SelectKBest, SelectFromModel
-# score_func for classification: chi2, f_classif, mutual_info_classif
+    # parameters = {
+    #     'vect__ngram_range': [(1, 1), (1, 2), (2, 2), (1, 3), (3, 3), (1, 4)],
+    #     #'vect__max_features': (None, 5000, 10000, 50000),
+    #     #'vect__max_df': [0.5, 0.7, 0.9],
+    #     #'vect__sublinear_tf': [True, False],
+    #     'vect__min_df': [1, 5],
+    #     'clf__alpha': (1e-2, 1e-3),
+    # }
+    # gs_clf = GridSearchCV(text_clf, parameters, cv=5, n_jobs=-1)
+    # gs_clf = gs_clf.fit(twenty_train.data, twenty_train.target)
+    # for param_name in sorted(parameters.keys()):
+    #     print("%s: %r" % (param_name, gs_clf.best_params_[param_name]))
 
-# print("SelectKBest chi, k=20")
-# select = SelectKBest(chi2, k=20)
-# text_clf = check_performance(vect, clf, select)
-# parameters = {
-#     'vect__ngram_range': [(1, 1), (1, 2), (2, 2), (1, 3), (3, 3), (1, 4), (4, 4)],
-#     'vect__max_df': [0.5, 0.7, 0.9],
-#     'select__k': [10, 20, 30, 40, 50, "all"],
-#     'clf__alpha': (1e-2, 1e-3),
-# }
-# gs_clf = GridSearchCV(text_clf, parameters, cv=5, n_jobs=-1)
-# gs_clf = gs_clf.fit(twenty_train.data, twenty_train.target)
-# for param_name in sorted(parameters.keys()):
-#     print("%s: %r" % (param_name, gs_clf.best_params_[param_name]))
+    # Other tests:
 
-# print("SelectKBest chi, k=all")
-# select = SelectKBest(chi2, k='all')
-# text_clf = check_performance(vect, clf, select)
+    # Feature_selections to try: SelectKBest, SelectFromModel
+    # score_func for classification: chi2, f_classif, mutual_info_classif
 
-# print("SelectKBest f_classif, k=all")
-# select = SelectKBest(f_classif, k='all')
-# text_clf = check_performance(vect, clf, select)
+    # print("SelectKBest chi, k=20")
+    # select = SelectKBest(chi2, k=20)
+    # text_clf = clf_pipe(vect, clf, select)
+    # check_performance(text_clf)
+    # parameters = {
+    #     'vect__ngram_range': [(1, 1), (1, 2), (2, 2), (1, 3), (3, 3), (1, 4), (4, 4)],
+    #     'vect__max_df': [0.5, 0.7, 0.9],
+    #     'select__k': [10, 20, 30, 40, 50, "all"],
+    #     'clf__alpha': (1e-2, 1e-3),
+    # }
+    # gs_clf = GridSearchCV(text_clf, parameters, cv=5, n_jobs=-1)
+    # gs_clf = gs_clf.fit(twenty_train.data, twenty_train.target)
+    # for param_name in sorted(parameters.keys()):
+    #     print("%s: %r" % (param_name, gs_clf.best_params_[param_name]))
 
-# print("SelectFromModel LinearSVC")
-# select = SelectFromModel(LinearSVC())
-# text_clf = check_performance(vect, clf, select)
+    # print("SelectKBest chi, k=all")
+    # select = SelectKBest(chi2, k='all')
+    # text_clf = clf_pipe(vect, clf, select)
+    # check_performance(text_clf)
 
-# print("SelectFromModel LinearSVC penalty=11")
-# select = SelectFromModel(LinearSVC(penalty="l1", dual=False, tol=1e-3))
-# text_clf = check_performance(vect, clf, select)
+    # print("SelectKBest f_classif, k=all")
+    # select = SelectKBest(f_classif, k='all')
+    # text_clf = clf_pipe(vect, clf, select)
+    # check_performance(text_clf)
 
-# print("SelectFromModel SGD penalty=11")
-# select = SelectFromModel(SGDClassifier())
-# text_clf = check_performance(vect, clf, select)
+    # print("SelectFromModel LinearSVC")
+    # select = SelectFromModel(LinearSVC())
+    # text_clf = clf_pipe(vect, clf, select)
+    # check_performance(text_clf)
 
-# -----
+    # print("SelectFromModel LinearSVC penalty=11")
+    # select = SelectFromModel(LinearSVC(penalty="l1", dual=False, tol=1e-3))
+    # text_clf = clf_pipe(vect, clf, select)
+    # check_performance(text_clf)
 
-### LR ###
+    # print("SelectFromModel SGD penalty=11")
+    # select = SelectFromModel(SGDClassifier())
+    # text_clf = clf_pipe(vect, clf, select)
+    # check_performance(text_clf)
 
-print("\nLR")
-test_number = 0
+    # -----
 
-vect = TfidfVectorizer(lowercase=True, stop_words=my_stop_words)
+    ### LR ###
 
-# clf = LogisticRegression(solver="lbfgs") # penalty=l2
-# text_clf = check_performance(vect, clf)
+    print("\nLR")
+    test_number = 0
 
-# clf = LogisticRegression(solver="newton-cg") # penalty=l2
-# text_clf = check_performance(vect, clf)
+    vect = TfidfVectorizer(lowercase=True, stop_words=my_stop_words)
 
-# clf = LogisticRegression(solver="sag") # penalty=l2
-# text_clf = check_performance(vect, clf)
+    # clf = LogisticRegression(solver="lbfgs") # penalty=l2
+    # text_clf = clf_pipe(vect, clf)
+    # check_performance(text_clf)
 
-# clf = LogisticRegression(solver="saga")
-# text_clf = check_performance(vect, clf)
+    # clf = LogisticRegression(solver="newton-cg") # penalty=l2
+    # text_clf = clf_pipe(vect, clf)
+    # check_performance(text_clf)
 
-# clf = LogisticRegression(penalty='l2', solver='saga')
-# text_clf = check_performance(vect, clf)
+    # clf = LogisticRegression(solver="sag") # penalty=l2
+    # text_clf = clf_pipe(vect, clf)
+    # check_performance(text_clf)
 
-# clf = LogisticRegression(penalty='l2', solver='saga', tol=0.1)
-# text_clf = check_performance(vect, clf)
+    # clf = LogisticRegression(solver="saga")
+    # text_clf = clf_pipe(vect, clf)
+    # check_performance(text_clf)
 
-# clf = LogisticRegression(penalty='l1', tol=0.01, solver='saga', C=1000)
-# text_clf = check_performance(vect, clf)
+    # clf = LogisticRegression(penalty='l2', solver='saga')
+    # text_clf = clf_pipe(vect, clf)
+    # check_performance(text_clf)
 
-# clf = LogisticRegression(penalty='l2', tol=0.01, solver='saga', C=1000)
-# text_clf = check_performance(vect, clf)
+    # clf = LogisticRegression(penalty='l2', solver='saga', tol=0.1)
+    # text_clf = clf_pipe(vect, clf)
+    # check_performance(text_clf)
 
-# best configuration
-vect = TfidfVectorizer(lowercase=True, stop_words=my_stop_words)
-clf = LogisticRegression(penalty='l1', tol=0.01, solver='saga', C=1000, max_iter=1000)
-lr_c1 = check_performance(vect, clf)
+    # clf = LogisticRegression(penalty='l1', tol=0.01, solver='saga', C=1000)
+    # text_clf = clf_pipe(vect, clf)
+    # check_performance(text_clf)
 
-# 2nd best configuration
-vect = TfidfVectorizer(lowercase=True, tokenizer=tokenize_and_lemma)
-clf = LogisticRegression(penalty='l1', tol=0.01, solver='saga', C=1000, max_iter=1000)
-lr_c2 = check_performance(vect, clf)
+    # clf = LogisticRegression(penalty='l2', tol=0.01, solver='saga', C=1000)
+    # text_clf = clf_pipe(vect, clf)
+    # check_performance(text_clf)
 
-# vect = TfidfVectorizer(lowercase=True, stop_words=my_stop_words)
-# clf = LogisticRegression(penalty='l2', tol=0.01, solver='saga', C=1000, max_iter=1000, multi_class="multinomial")
-# text_clf = check_performance(vect, clf)
+    # best configuration
+    vect = TfidfVectorizer(lowercase=True, stop_words=my_stop_words)
+    clf = LogisticRegression(penalty='l1', tol=0.01, solver='saga', C=1000, max_iter=1000)
+    text_clf = clf_pipe(vect, clf)
+    lr_c1 = check_performance(text_clf)
 
-# vect = TfidfVectorizer(lowercase=True, tokenizer=tokenize_and_lemma)
-# clf = LogisticRegression(penalty='l1', tol=0.001, solver='saga', C=1000, max_iter=1000, multi_class="multinomial")
-# text_clf = check_performance(vect, clf)
+    # 2nd best configuration
+    vect = TfidfVectorizer(lowercase=True, tokenizer=tokenize_and_lemma)
+    clf = LogisticRegression(penalty='l1', tol=0.01, solver='saga', C=1000, max_iter=1000)
+    text_clf = clf_pipe(vect, clf)
+    lr_c2 = check_performance(text_clf)
 
-# clf = LogisticRegression(penalty='l2', tol=0.001, solver='saga', C=1000, max_iter=1000)
-# text_clf = check_performance(vect, clf)
+    # vect = TfidfVectorizer(lowercase=True, stop_words=my_stop_words)
+    # clf = LogisticRegression(penalty='l2', tol=0.01, solver='saga', C=1000, max_iter=1000, multi_class="multinomial")
+    # text_clf = clf_pipe(vect, clf)
+    # check_performance(text_clf)
 
-# clf = LogisticRegression(penalty='elasticnet', solver='saga', l1_ratio=0.5, tol=0.01, C=50)
-# text_clf = check_performance(vect, clf)
+    # vect = TfidfVectorizer(lowercase=True, tokenizer=tokenize_and_lemma)
+    # clf = LogisticRegression(penalty='l1', tol=0.001, solver='saga', C=1000, max_iter=1000, multi_class="multinomial")
+    # text_clf = clf_pipe(vect, clf)
+    # check_performance(text_clf)
 
-# parameters = {
-#     'clf__max_iter': (10, 50, 80),
-#     'vect__use_idf': (True, False),
-#     'vect__max_df': (0.5, 0.75, 1.0),
-#     'vect__max_features': (None, 5000, 10000, 50000),
-#     # 'vect__ngram_range': [(1, 1), (1, 2), (2, 2), (1, 3), (3, 3)],
-# }
-# gs_clf = GridSearchCV(text_clf, parameters, cv=5, n_jobs=-1)
-# gs_clf = gs_clf.fit(twenty_train.data, twenty_train.target)
-# for param_name in sorted(parameters.keys()):
-#     print("%s: %r" % (param_name, gs_clf.best_params_[param_name]))
+    # clf = LogisticRegression(penalty='l2', tol=0.001, solver='saga', C=1000, max_iter=1000)
+    # text_clf = clf_pipe(vect, clf)
+    # check_performance(text_clf)
 
-# -----
+    # clf = LogisticRegression(penalty='elasticnet', solver='saga', l1_ratio=0.5, tol=0.01, C=50)
+    # text_clf = clf_pipe(vect, clf)
+    # check_performance(text_clf)
 
-print("\nSVM")
-test_number = 0
+    # parameters = {
+    #     'clf__max_iter': (10, 50, 80),
+    #     'vect__use_idf': (True, False),
+    #     'vect__max_df': (0.5, 0.75, 1.0),
+    #     'vect__max_features': (None, 5000, 10000, 50000),
+    #     # 'vect__ngram_range': [(1, 1), (1, 2), (2, 2), (1, 3), (3, 3)],
+    # }
+    # gs_clf = GridSearchCV(text_clf, parameters, cv=5, n_jobs=-1)
+    # gs_clf = gs_clf.fit(twenty_train.data, twenty_train.target)
+    # for param_name in sorted(parameters.keys()):
+    #     print("%s: %r" % (param_name, gs_clf.best_params_[param_name]))
 
-# SGDClassifier
-# vect = TfidfVectorizer(lowercase=True, stop_words=my_stop_words, ngram_range=(1,2))
-# clf = SGDClassifier(penalty="elasticnet")
-# text_clf = check_performance(vect, clf)
+    # -----
 
-# vect = TfidfVectorizer(lowercase=True, stop_words=my_stop_words)
-# clf = SGDClassifier(alpha=0.0001, penalty="elasticnet")
-# text_clf = check_performance(vect, clf)
+    print("\nSVM")
+    test_number = 0
 
-# clf = SGDClassifier(penalty="elasticnet", l1_ratio=0.5)
-# text_clf = check_performance(vect, clf)
+    # SGDClassifier
+    # vect = TfidfVectorizer(lowercase=True, stop_words=my_stop_words, ngram_range=(1,2))
+    # clf = SGDClassifier(penalty="elasticnet")
+    # text_clf = clf_pipe(vect, clf)
+    # check_performance(text_clf)
 
-# clf = SGDClassifier(penalty="l1")
-# text_clf = check_performance(vect, clf)
+    # vect = TfidfVectorizer(lowercase=True, stop_words=my_stop_words)
+    # clf = SGDClassifier(alpha=0.0001, penalty="elasticnet")
+    # text_clf = clf_pipe(vect, clf)
+    # check_performance(text_clf)
 
-# 2nd best configuration
-clf = SGDClassifier(penalty="l2")
-svm_c2 = check_performance(vect, clf)
+    # clf = SGDClassifier(penalty="elasticnet", l1_ratio=0.5)
+    # text_clf = clf_pipe(vect, clf)
+    # check_performance(text_clf)
 
-# vect = TfidfVectorizer(ngram_range=(1, 2), lowercase=True, stop_words=my_stop_words, max_df=0.75)
-# clf = SGDClassifier(alpha=0.00001, penalty="l2")
-# text_clf = check_performance(vect, clf)
+    # clf = SGDClassifier(penalty="l1")
+    # text_clf = clf_pipe(vect, clf)
+    # check_performance(text_clf)
 
-# LinearSVC
-# vect = TfidfVectorizer(lowercase=True, stop_words=my_stop_words, ngram_range=(1,2))
-# clf = LinearSVC()
-# text_clf = check_performance(vect, clf)
+    # 2nd best configuration
+    clf = SGDClassifier(penalty="l2")
+    text_clf = clf_pipe(vect, clf)
+    svm_c2 = check_performance(text_clf)
 
-# SVC
-# vect = TfidfVectorizer(lowercase=True, stop_words=my_stop_words, ngram_range=(1,2))
-# clf = SVC(C=10)
-# text_clf = check_performance(vect, clf)
+    # vect = TfidfVectorizer(ngram_range=(1, 2), lowercase=True, stop_words=my_stop_words, max_df=0.75)
+    # clf = SGDClassifier(alpha=0.00001, penalty="l2")
+    # text_clf = clf_pipe(vect, clf)
+    # check_performance(text_clf)
 
-# linear, poly, rbf, sigmoid, precomputed
+    # LinearSVC
+    # vect = TfidfVectorizer(lowercase=True, stop_words=my_stop_words, ngram_range=(1,2))
+    # clf = LinearSVC()
+    # text_clf = clf_pipe(vect, clf)
+    # check_performance(text_clf)
 
-# vect = TfidfVectorizer(lowercase=True, stop_words=my_stop_words, ngram_range=(1,2))
-# clf = SVC(kernel="linear")
-# text_clf = check_performance(vect, clf)
+    # SVC
+    # vect = TfidfVectorizer(lowercase=True, stop_words=my_stop_words, ngram_range=(1,2))
+    # clf = SVC(C=10)
+    # text_clf = clf_pipe(vect, clf)
+    # check_performance(text_clf)
 
-# vect = TfidfVectorizer(lowercase=True, stop_words=my_stop_words, ngram_range=(1,2))
-# clf = SVC(kernel="poly")
-# text_clf = check_performance(vect, clf)
+    # linear, poly, rbf, sigmoid, precomputed
 
-# best configuration
-vect = TfidfVectorizer(lowercase=True, stop_words=my_stop_words, ngram_range=(1,2))
-clf = SVC(kernel="sigmoid", C=10)
-svm_c1 = check_performance(vect, clf)
-# parameters = {
-#     # 'clf__alpha': (1.0000000000000001e-05, 9.9999999999999995e-07),
-#     # 'clf__max_iter': (10, 50, 80),
-#     # 'clf__penalty': ('l2', 'elasticnet'),
-#     # 'vect__max_df': (0.5, 0.75, 1.0),
-#     # 'vect__max_features': (None, 5000, 10000, 50000)
-#     'clf__C': [.001, .01, .1, 1, 10, 100, 1000]
-#  }
-# gs_clf = GridSearchCV(text_clf, parameters, cv=5, n_jobs=-1)
-# gs_clf = gs_clf.fit(twenty_train.data, twenty_train.target)
-# for param_name in sorted(parameters.keys()):
-#     print("%s: %r" % (param_name, gs_clf.best_params_[param_name]))
+    # vect = TfidfVectorizer(lowercase=True, stop_words=my_stop_words, ngram_range=(1,2))
+    # clf = SVC(kernel="linear")
+    # text_clf = clf_pipe(vect, clf)
+    # check_performance(text_clf)
 
-# vect = TfidfVectorizer(lowercase=True, stop_words=my_stop_words, ngram_range=(1,2))
-# clf = SVC(kernel="precomputer")
-# text_clf = check_performance(vect, clf)
+    # vect = TfidfVectorizer(lowercase=True, stop_words=my_stop_words, ngram_range=(1,2))
+    # clf = SVC(kernel="poly")
+    # text_clf = clf_pipe(vect, clf)
+    # check_performance(text_clf)
 
-# parameters = {
-#     'vect__max_df': (0.5, 0.75, 1.0),
-#     'vect__max_features': (None, 5000, 10000, 50000),
-#     'vect__ngram_range': ((1, 2), (1, 3)),
-#     'clf__penalty': ('l2', 'elasticnet'),
-#     # 'clf__max_iter': (10, 50, 80),
-# }
-# gs_clf = GridSearchCV(text_clf, parameters, cv=5, n_jobs=-1)
-# gs_clf = gs_clf.fit(twenty_train.data, twenty_train.target)
-# for param_name in sorted(parameters.keys()):
-#     print("%s: %r" % (param_name, gs_clf.best_params_[param_name]))
+    # best configuration
+    vect = TfidfVectorizer(lowercase=True, stop_words=my_stop_words, ngram_range=(1,2))
+    clf = SVC(kernel="sigmoid", C=10)
+    text_clf = clf_pipe(vect, clf)
+    svm_c1 = check_performance(text_clf)
+    # parameters = {
+    #     # 'clf__alpha': (1.0000000000000001e-05, 9.9999999999999995e-07),
+    #     # 'clf__max_iter': (10, 50, 80),
+    #     # 'clf__penalty': ('l2', 'elasticnet'),
+    #     # 'vect__max_df': (0.5, 0.75, 1.0),
+    #     # 'vect__max_features': (None, 5000, 10000, 50000)
+    #     'clf__C': [.001, .01, .1, 1, 10, 100, 1000]
+    #  }
+    # gs_clf = GridSearchCV(text_clf, parameters, cv=5, n_jobs=-1)
+    # gs_clf = gs_clf.fit(twenty_train.data, twenty_train.target)
+    # for param_name in sorted(parameters.keys()):
+    #     print("%s: %r" % (param_name, gs_clf.best_params_[param_name]))
 
-# -----
+    # vect = TfidfVectorizer(lowercase=True, stop_words=my_stop_words, ngram_range=(1,2))
+    # clf = SVC(kernel="precomputer")
+    # text_clf = clf_pipe(vect, clf)
+    # check_performance(text_clf)
 
-print("\nRF")
-test_number = 0
+    # parameters = {
+    #     'vect__max_df': (0.5, 0.75, 1.0),
+    #     'vect__max_features': (None, 5000, 10000, 50000),
+    #     'vect__ngram_range': ((1, 2), (1, 3)),
+    #     'clf__penalty': ('l2', 'elasticnet'),
+    #     # 'clf__max_iter': (10, 50, 80),
+    # }
+    # gs_clf = GridSearchCV(text_clf, parameters, cv=5, n_jobs=-1)
+    # gs_clf = gs_clf.fit(twenty_train.data, twenty_train.target)
+    # for param_name in sorted(parameters.keys()):
+    #     print("%s: %r" % (param_name, gs_clf.best_params_[param_name]))
 
-# 2nd best configuration
-vect = TfidfVectorizer(lowercase=True, stop_words=my_stop_words)
-clf = RandomForestClassifier()
-rf_c2 = check_performance(vect, clf)
-# parameters = {
-#     'vect__ngram_range': [(1, 1), (1, 2), (2, 2), (1, 3)],
-#     'vect__max_df': [0.5, 0.7, 0.9],
-#     'vect__sublinear_tf': [True, False],
-#     'vect__min_df': [1, 5],
-# }
-# gs_clf = GridSearchCV(text_clf, parameters, cv=5, n_jobs=-1)
-# gs_clf = gs_clf.fit(twenty_train.data, twenty_train.target)
-# for param_name in sorted(parameters.keys()):
-#     print("%s: %r" % (param_name, gs_clf.best_params_[param_name]))
+    # -----
 
-# best configuration
-vect = TfidfVectorizer(lowercase=True, stop_words=my_stop_words, max_df=0.5, min_df=5, ngram_range=(1, 2))
-clf = RandomForestClassifier()
-rf_c1 = check_performance(vect, clf)
-# number of trees, number of features
-# parameters = {
-#     # 'vect__ngram_range': [(1, 1), (1, 2), (2, 2), (1, 3)],
-#     # 'vect__max_df': [0.5, 0.7, 0.9],
-#     # 'vect__sublinear_tf': [True, False],
-#     # 'vect__min_df': [1, 5],
-#     # 'clf__criterion': ["gini", "entropy"],
-#     'clf__n_estimators': [50, 100, 200]
-# }
-# gs_clf = GridSearchCV(text_clf, parameters, cv=5, n_jobs=-1)
-# gs_clf = gs_clf.fit(twenty_train.data, twenty_train.target)
-# for param_name in sorted(parameters.keys()):
-#     print("%s: %r" % (param_name, gs_clf.best_params_[param_name]))
+    print("\nRF")
+    test_number = 0
 
-# vect = TfidfVectorizer(lowercase=True, tokenizer=tokenize_and_lemma)
-# clf = RandomForestClassifier()
-# text_clf = check_performance(vect, clf)
+    # 2nd best configuration
+    vect = TfidfVectorizer(lowercase=True, stop_words=my_stop_words)
+    clf = RandomForestClassifier()
+    text_clf = clf_pipe(vect, clf)
+    rf_c2 = check_performance(text_clf)
+    # parameters = {
+    #     'vect__ngram_range': [(1, 1), (1, 2), (2, 2), (1, 3)],
+    #     'vect__max_df': [0.5, 0.7, 0.9],
+    #     'vect__sublinear_tf': [True, False],
+    #     'vect__min_df': [1, 5],
+    # }
+    # gs_clf = GridSearchCV(text_clf, parameters, cv=5, n_jobs=-1)
+    # gs_clf = gs_clf.fit(twenty_train.data, twenty_train.target)
+    # for param_name in sorted(parameters.keys()):
+    #     print("%s: %r" % (param_name, gs_clf.best_params_[param_name]))
 
+    # best configuration
+    vect = TfidfVectorizer(lowercase=True, stop_words=my_stop_words, max_df=0.5, min_df=5, ngram_range=(1, 2))
+    clf = RandomForestClassifier()
+    text_clf = clf_pipe(vect, clf)
+    rf_c1 =  check_performance(text_clf)
+    # number of trees, number of features
+    # parameters = {
+    #     # 'vect__ngram_range': [(1, 1), (1, 2), (2, 2), (1, 3)],
+    #     # 'vect__max_df': [0.5, 0.7, 0.9],
+    #     # 'vect__sublinear_tf': [True, False],
+    #     # 'vect__min_df': [1, 5],
+    #     # 'clf__criterion': ["gini", "entropy"],
+    #     'clf__n_estimators': [50, 100, 200]
+    # }
+    # gs_clf = GridSearchCV(text_clf, parameters, cv=5, n_jobs=-1)
+    # gs_clf = gs_clf.fit(twenty_train.data, twenty_train.target)
+    # for param_name in sorted(parameters.keys()):
+    #     print("%s: %r" % (param_name, gs_clf.best_params_[param_name]))
+
+    # vect = TfidfVectorizer(lowercase=True, tokenizer=tokenize_and_lemma)
+    # clf = RandomForestClassifier()
+    # text_clf = clf_pipe(vect, clf)
+    # check_performance(text_clf)
+
+    return [("NB", nb_c1, nb_c2), ("LR", lr_c1, lr_c2), ("SVM", svm_c1, svm_c2), ("RF", rf_c1, rf_c2)]
+
+### Main class ###
+if __name__ == '__main__':
+    # (sys.argv[0]) # UB_BB.py
+    trainset = (sys.argv[1])
+    evalset = (sys.argv[2])
+    output = (sys.argv[3])
+
+    f = open(output, "w")
+
+    categories = ['rec.sport.hockey', 'sci.med', 'soc.religion.christian', 'talk.religion.misc']
+
+    train_folder = ".\Selected 20NewsGroup\\" + trainset
+    evaluation_folder = ".\Selected 20NewsGroup\\" + evalset
+
+    configurations = mbc_exploration(categories, train_folder, evaluation_folder)
+
+    for config in configurations:
+        classification = config[0]
+        c1 = config[1]
+        c2 = config[2]
+        f.write(classification + ",C1," + c1 + "\n")
+        f.write(classification + ",C2," + c2 + "\n")
+    f.close()
 
 
     
