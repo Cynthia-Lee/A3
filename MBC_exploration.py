@@ -7,22 +7,18 @@
 from nltk.corpus.reader.chasen import test
 from sklearn.datasets import load_files
 from sklearn.feature_extraction.text import CountVectorizer, TfidfTransformer, TfidfVectorizer
-from sklearn.feature_extraction import DictVectorizer
 from sklearn.metrics import precision_recall_fscore_support
 from sklearn.feature_extraction._stop_words import ENGLISH_STOP_WORDS
 import nltk
 nltk.download('stopwords')
 from nltk.corpus import stopwords
-#
 import re
 import string
 from nltk.stem.snowball import SnowballStemmer
 from nltk.stem import WordNetLemmatizer
 nltk.download('wordnet')
 from nltk import word_tokenize
-#
-nltk.download('punkt')
-#
+# nltk.download('punkt')
 from sklearn.naive_bayes import BernoulliNB, MultinomialNB
 from sklearn.pipeline import Pipeline
 import numpy as np
@@ -34,6 +30,9 @@ from sklearn.feature_selection import GenericUnivariateSelect, SelectPercentile,
 from sklearn.tree import DecisionTreeClassifier
 from sklearn.svm import LinearSVC, SVC
 from sklearn.decomposition import PCA
+from sklearn.ensemble import RandomForestClassifier
+import sys
+
 
 ### Dataset ###
 # Header
@@ -149,7 +148,7 @@ def check_performance(vect, clf, select=None): #, scaler=None): #, encoder=None)
     return text_clf
 
 # -----
-'''
+
 ### NB ###
 
 print("NB")
@@ -189,12 +188,12 @@ clf = MultinomialNB()
 # 2nd best configuration (no lemma)
 vect = TfidfVectorizer(lowercase=True, stop_words=my_stop_words, max_df=0.5, ngram_range=(1,2))
 clf = MultinomialNB(alpha=0.001)
-text_clf = check_performance(vect, clf)
+nb_c2 = check_performance(vect, clf)
 
 # best configuration (lemma)
 vect = TfidfVectorizer(lowercase=True, tokenizer=tokenize_and_lemma, max_df=0.5, ngram_range=(1,3))
 clf = MultinomialNB(alpha=0.001)
-text_clf = check_performance(vect, clf)
+nb_c1 = check_performance(vect, clf)
 
 # parameters = {
 #     'vect__ngram_range': [(1, 1), (1, 2), (2, 2), (1, 3), (3, 3), (1, 4)],
@@ -247,9 +246,9 @@ text_clf = check_performance(vect, clf)
 # print("SelectFromModel SGD penalty=11")
 # select = SelectFromModel(SGDClassifier())
 # text_clf = check_performance(vect, clf, select)
-'''
+
 # -----
-'''
+
 ### LR ###
 
 print("\nLR")
@@ -275,21 +274,21 @@ vect = TfidfVectorizer(lowercase=True, stop_words=my_stop_words)
 # clf = LogisticRegression(penalty='l2', solver='saga', tol=0.1)
 # text_clf = check_performance(vect, clf)
 
-clf = LogisticRegression(penalty='l1', tol=0.01, solver='saga', C=1000)
-text_clf = check_performance(vect, clf)
+# clf = LogisticRegression(penalty='l1', tol=0.01, solver='saga', C=1000)
+# text_clf = check_performance(vect, clf)
 
-clf = LogisticRegression(penalty='l2', tol=0.01, solver='saga', C=1000)
-text_clf = check_performance(vect, clf)
+# clf = LogisticRegression(penalty='l2', tol=0.01, solver='saga', C=1000)
+# text_clf = check_performance(vect, clf)
 
 # best configuration
 vect = TfidfVectorizer(lowercase=True, stop_words=my_stop_words)
 clf = LogisticRegression(penalty='l1', tol=0.01, solver='saga', C=1000, max_iter=1000)
-text_clf = check_performance(vect, clf)
+lr_c1 = check_performance(vect, clf)
 
 # 2nd best configuration
 vect = TfidfVectorizer(lowercase=True, tokenizer=tokenize_and_lemma)
 clf = LogisticRegression(penalty='l1', tol=0.01, solver='saga', C=1000, max_iter=1000)
-text_clf = check_performance(vect, clf)
+lr_c2 = check_performance(vect, clf)
 
 # vect = TfidfVectorizer(lowercase=True, stop_words=my_stop_words)
 # clf = LogisticRegression(penalty='l2', tol=0.01, solver='saga', C=1000, max_iter=1000, multi_class="multinomial")
@@ -316,20 +315,20 @@ text_clf = check_performance(vect, clf)
 # gs_clf = gs_clf.fit(twenty_train.data, twenty_train.target)
 # for param_name in sorted(parameters.keys()):
 #     print("%s: %r" % (param_name, gs_clf.best_params_[param_name]))
-'''
+
 # -----
 
 print("\nSVM")
 test_number = 0
 
 # SGDClassifier
-vect = TfidfVectorizer(lowercase=True, stop_words=my_stop_words, ngram_range=(1,2))
-clf = SGDClassifier(penalty="elasticnet")
-text_clf = check_performance(vect, clf)
+# vect = TfidfVectorizer(lowercase=True, stop_words=my_stop_words, ngram_range=(1,2))
+# clf = SGDClassifier(penalty="elasticnet")
+# text_clf = check_performance(vect, clf)
 
-vect = TfidfVectorizer(lowercase=True, stop_words=my_stop_words)
-clf = SGDClassifier(alpha=0.0001, penalty="elasticnet")
-text_clf = check_performance(vect, clf)
+# vect = TfidfVectorizer(lowercase=True, stop_words=my_stop_words)
+# clf = SGDClassifier(alpha=0.0001, penalty="elasticnet")
+# text_clf = check_performance(vect, clf)
 
 # clf = SGDClassifier(penalty="elasticnet", l1_ratio=0.5)
 # text_clf = check_performance(vect, clf)
@@ -339,16 +338,16 @@ text_clf = check_performance(vect, clf)
 
 # 2nd best configuration
 clf = SGDClassifier(penalty="l2")
-text_clf = check_performance(vect, clf)
+svm_c2 = check_performance(vect, clf)
 
 # vect = TfidfVectorizer(ngram_range=(1, 2), lowercase=True, stop_words=my_stop_words, max_df=0.75)
 # clf = SGDClassifier(alpha=0.00001, penalty="l2")
 # text_clf = check_performance(vect, clf)
 
 # LinearSVC
-vect = TfidfVectorizer(lowercase=True, stop_words=my_stop_words, ngram_range=(1,2))
-clf = LinearSVC()
-text_clf = check_performance(vect, clf)
+# vect = TfidfVectorizer(lowercase=True, stop_words=my_stop_words, ngram_range=(1,2))
+# clf = LinearSVC()
+# text_clf = check_performance(vect, clf)
 
 # SVC
 # vect = TfidfVectorizer(lowercase=True, stop_words=my_stop_words, ngram_range=(1,2))
@@ -368,7 +367,7 @@ text_clf = check_performance(vect, clf)
 # best configuration
 vect = TfidfVectorizer(lowercase=True, stop_words=my_stop_words, ngram_range=(1,2))
 clf = SVC(kernel="sigmoid", C=10)
-text_clf = check_performance(vect, clf)
+svm_c1 = check_performance(vect, clf)
 # parameters = {
 #     # 'clf__alpha': (1.0000000000000001e-05, 9.9999999999999995e-07),
 #     # 'clf__max_iter': (10, 50, 80),
@@ -399,3 +398,47 @@ text_clf = check_performance(vect, clf)
 #     print("%s: %r" % (param_name, gs_clf.best_params_[param_name]))
 
 # -----
+
+print("\nRF")
+test_number = 0
+
+# 2nd best configuration
+vect = TfidfVectorizer(lowercase=True, stop_words=my_stop_words)
+clf = RandomForestClassifier()
+rf_c2 = check_performance(vect, clf)
+# parameters = {
+#     'vect__ngram_range': [(1, 1), (1, 2), (2, 2), (1, 3)],
+#     'vect__max_df': [0.5, 0.7, 0.9],
+#     'vect__sublinear_tf': [True, False],
+#     'vect__min_df': [1, 5],
+# }
+# gs_clf = GridSearchCV(text_clf, parameters, cv=5, n_jobs=-1)
+# gs_clf = gs_clf.fit(twenty_train.data, twenty_train.target)
+# for param_name in sorted(parameters.keys()):
+#     print("%s: %r" % (param_name, gs_clf.best_params_[param_name]))
+
+# best configuration
+vect = TfidfVectorizer(lowercase=True, stop_words=my_stop_words, max_df=0.5, min_df=5, ngram_range=(1, 2))
+clf = RandomForestClassifier()
+rf_c1 = check_performance(vect, clf)
+# number of trees, number of features
+# parameters = {
+#     # 'vect__ngram_range': [(1, 1), (1, 2), (2, 2), (1, 3)],
+#     # 'vect__max_df': [0.5, 0.7, 0.9],
+#     # 'vect__sublinear_tf': [True, False],
+#     # 'vect__min_df': [1, 5],
+#     # 'clf__criterion': ["gini", "entropy"],
+#     'clf__n_estimators': [50, 100, 200]
+# }
+# gs_clf = GridSearchCV(text_clf, parameters, cv=5, n_jobs=-1)
+# gs_clf = gs_clf.fit(twenty_train.data, twenty_train.target)
+# for param_name in sorted(parameters.keys()):
+#     print("%s: %r" % (param_name, gs_clf.best_params_[param_name]))
+
+# vect = TfidfVectorizer(lowercase=True, tokenizer=tokenize_and_lemma)
+# clf = RandomForestClassifier()
+# text_clf = check_performance(vect, clf)
+
+
+
+    
