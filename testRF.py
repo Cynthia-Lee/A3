@@ -168,17 +168,18 @@ vect = TfidfVectorizer(lowercase=True, stop_words=my_stop_words, max_df=0.5, min
 clf = RandomForestClassifier()
 text_clf = check_performance(vect, clf)
 # number of trees, number of features
-parameters = {
-    # 'vect__ngram_range': [(1, 1), (1, 2), (2, 2), (1, 3)],
-    # 'vect__max_df': [0.5, 0.7, 0.9],
-    # 'vect__sublinear_tf': [True, False],
-    # 'vect__min_df': [1, 5],
-    # 'clf__criterion': ["gini", "entropy"]
-}
-gs_clf = GridSearchCV(text_clf, parameters, cv=5, n_jobs=-1)
-gs_clf = gs_clf.fit(twenty_train.data, twenty_train.target)
-for param_name in sorted(parameters.keys()):
-    print("%s: %r" % (param_name, gs_clf.best_params_[param_name]))
+# parameters = {
+#     # 'vect__ngram_range': [(1, 1), (1, 2), (2, 2), (1, 3)],
+#     # 'vect__max_df': [0.5, 0.7, 0.9],
+#     # 'vect__sublinear_tf': [True, False],
+#     # 'vect__min_df': [1, 5],
+#     # 'clf__criterion': ["gini", "entropy"],
+#     'clf__n_estimators': [50, 100, 200]
+# }
+# gs_clf = GridSearchCV(text_clf, parameters, cv=5, n_jobs=-1)
+# gs_clf = gs_clf.fit(twenty_train.data, twenty_train.target)
+# for param_name in sorted(parameters.keys()):
+#     print("%s: %r" % (param_name, gs_clf.best_params_[param_name]))
 
 vect = TfidfVectorizer(lowercase=True, tokenizer=tokenize_and_lemma)
 clf = RandomForestClassifier()

@@ -4,6 +4,7 @@
 # https://scikit-learn.org/stable/modules/preprocessing.html
 # http://www.nltk.org/howto/stem.html
 
+from nltk.corpus.reader.chasen import test
 from sklearn.datasets import load_files
 from sklearn.feature_extraction.text import CountVectorizer, TfidfTransformer, TfidfVectorizer
 from sklearn.feature_extraction import DictVectorizer
@@ -148,7 +149,7 @@ def check_performance(vect, clf, select=None): #, scaler=None): #, encoder=None)
     return text_clf
 
 # -----
-
+'''
 ### NB ###
 
 print("NB")
@@ -246,159 +247,76 @@ text_clf = check_performance(vect, clf)
 # print("SelectFromModel SGD penalty=11")
 # select = SelectFromModel(SGDClassifier())
 # text_clf = check_performance(vect, clf, select)
-
+'''
 # -----
 
 ### LR ###
-'''
+
 print("\nLR")
 
-vect = TfidfVectorizer(ngram_range=(1, 4), lowercase=True, tokenizer=tokenize_and_lemma, max_df=0.5)
-print(vect)
+test_number = 0
+vect = TfidfVectorizer(lowercase=True, stop_words=my_stop_words)
 
-# penalty
-# dual
-# tol
-# C
-# fit_intercept
-# intercept_scaling
-# class_weight
-# solver
-# max_iter
-# multi_class
-# verbose
-# warm_start
-# n_jobs
-# l1_ratio
-
-# solver{'newton-cg', 'lbfgs', 'liblinear', 'sag', 'saga'}, default='lbfgs'
-
-# print("liblinear penalty=l1")
-# clf = LogisticRegression(solver="liblinear", penalty="l1")
+# clf = LogisticRegression(solver="lbfgs") # penalty=l2
 # text_clf = check_performance(vect, clf)
 
-# print("liblinear penalty=l2")
-# clf = LogisticRegression(solver="liblinear", penalty="l2")
+# clf = LogisticRegression(solver="newton-cg") # penalty=l2
 # text_clf = check_performance(vect, clf)
 
-# print("liblinear penalty=l2 dual=True")
-# clf = LogisticRegression(solver="liblinear", penalty="l2", dual=True)
+# clf = LogisticRegression(solver="sag") # penalty=l2
 # text_clf = check_performance(vect, clf)
 
-scaler = StandardScaler(with_mean=False) # sparse matrices
-encoder = OneHotEncoder()
-
-print("lbfgs") #penalty=l2
-clf = LogisticRegression(solver="lbfgs")
-text_clf = check_performance(vect, clf)
-
-# select = SelectFromModel(SGDClassifier())
-# text_clf = check_performance(vect, clf)
-
-# print("sag class_weight=balanced") #penalty=l2
-# clf = LogisticRegression(solver="sag", class_weight="balanced")
-# text_clf = check_performance(vect, clf)
-
-# print("lbfgs and scaler") #penalty=l2
-# clf = LogisticRegression(solver="lbfgs")
-# text_clf = check_performance(vect, clf, None, scaler)
-# parameters = {
-#     'clf__max_iter': [100, 200, 300, 400],
-# }
-# gs_clf = GridSearchCV(text_clf, parameters, cv=5, n_jobs=-1)
-# gs_clf = gs_clf.fit(twenty_train.data, twenty_train.target)
-# for param_name in sorted(parameters.keys()):
-#     print("%s: %r" % (param_name, gs_clf.best_params_[param_name]))
-
-# print("lbfgs class_weight=balanced") #penalty=l2
-# clf = LogisticRegression(solver="lbfgs", class_weight="balanced")
-# text_clf = check_performance(vect, clf)
-
-print("newton-cg") #penalty=l2
-clf = LogisticRegression(solver="newton-cg")
-text_clf = check_performance(vect, clf)
-
-# print("newton-cg class_weight=balanced") #penalty=l2
-# clf = LogisticRegression(solver="newton-cg", class_weight="balanced")
-# text_clf = check_performance(vect, clf)
-
-print("sag") #penalty=l2
-clf = LogisticRegression(solver="sag")
-text_clf = check_performance(vect, clf)
-
-print("sag tol") #penalty=l2
-clf = LogisticRegression(solver="sag", tol=1e-2)
-text_clf = check_performance(vect, clf)
-
-# print("sag multi_class=multinomial and scaler") #penalty=l2
-# clf = LogisticRegression(solver="sag", multi_class="multinomial")
-# text_clf = check_performance(vect, clf, None, scaler)
-
-print("saga")
-clf = LogisticRegression(solver="saga")
-text_clf = check_performance(vect, clf)
-
-# print("saga and scaler") #penalty=elasticnet
 # clf = LogisticRegression(solver="saga")
-# text_clf = check_performance(vect, clf, None, scaler)
+# text_clf = check_performance(vect, clf)
 
-print("saga penalty=elasticnet") #penalty=elasticnet
-clf = LogisticRegression(solver="saga", penalty="elasticnet", l1_ratio=0.5)
+# clf = LogisticRegression(penalty='l2', solver='saga')
+# text_clf = check_performance(vect, clf)
+
+# clf = LogisticRegression(penalty='l2', solver='saga', tol=0.1)
+# text_clf = check_performance(vect, clf)
+
+clf = LogisticRegression(penalty='l1', tol=0.01, solver='saga', C=1000)
 text_clf = check_performance(vect, clf)
 
-# print("saga l1_ratio=1")
-# clf = LogisticRegression(solver="saga", penalty="elasticnet", l1_ratio=1)
-print("saga penalty=l2")
-clf = LogisticRegression(penalty='l2', solver='saga')
+clf = LogisticRegression(penalty='l2', tol=0.01, solver='saga', C=1000)
 text_clf = check_performance(vect, clf)
+
+# best configuration
+vect = TfidfVectorizer(lowercase=True, stop_words=my_stop_words)
+clf = LogisticRegression(penalty='l1', tol=0.01, solver='saga', C=1000, max_iter=1000)
+text_clf = check_performance(vect, clf)
+
+# 2nd best configuration
+vect = TfidfVectorizer(lowercase=True, tokenizer=tokenize_and_lemma)
+clf = LogisticRegression(penalty='l1', tol=0.01, solver='saga', C=1000, max_iter=1000)
+text_clf = check_performance(vect, clf)
+
+# vect = TfidfVectorizer(lowercase=True, stop_words=my_stop_words)
+# clf = LogisticRegression(penalty='l2', tol=0.01, solver='saga', C=1000, max_iter=1000, multi_class="multinomial")
+# text_clf = check_performance(vect, clf)
+
+# vect = TfidfVectorizer(lowercase=True, tokenizer=tokenize_and_lemma)
+# clf = LogisticRegression(penalty='l1', tol=0.001, solver='saga', C=1000, max_iter=1000, multi_class="multinomial")
+# text_clf = check_performance(vect, clf)
+
+# clf = LogisticRegression(penalty='l2', tol=0.001, solver='saga', C=1000, max_iter=1000)
+# text_clf = check_performance(vect, clf)
+
+# clf = LogisticRegression(penalty='elasticnet', solver='saga', l1_ratio=0.5, tol=0.01, C=50)
+# text_clf = check_performance(vect, clf)
+
 # parameters = {
 #     'clf__max_iter': (10, 50, 80),
 #     'vect__use_idf': (True, False),
 #     'vect__max_df': (0.5, 0.75, 1.0),
 #     'vect__max_features': (None, 5000, 10000, 50000),
-#     # 'vect__ngram_range': [(1, 1), (1, 2), (2, 2), (1, 3), (3, 3), (1, 4), (4, 4)],
+#     # 'vect__ngram_range': [(1, 1), (1, 2), (2, 2), (1, 3), (3, 3)],
 # }
 # gs_clf = GridSearchCV(text_clf, parameters, cv=5, n_jobs=-1)
 # gs_clf = gs_clf.fit(twenty_train.data, twenty_train.target)
 # for param_name in sorted(parameters.keys()):
 #     print("%s: %r" % (param_name, gs_clf.best_params_[param_name]))
 
-# text_clf = Pipeline([
-#     ('s', StandardScaler()),
-#     ('clf', LogisticRegression(penalty='l1', solver='saga', tol=0.1)), # classifier
-# ])
-# text_clf.fit(twenty_train.data, twenty_train.target)
-# predicted = text_clf.predict(docs_test)
-# info = precision_recall_fscore_support(twenty_evaluation.target, predicted, average='macro')
-# result = ",".join(map(str,info[:-1]))
-# print(result)
-
-
-
-
-
-
-# parameters = {
-#     #'vect__ngram_range': [(1, 1), (1, 2), (2, 2), (1, 3), (3, 3), (1, 4), (4, 4)],
-#     #'vect__max_df': [0.5, 0.7, 0.9],
-#     #'clf__alpha': (1e-2, 1e-3),
-# }
-# gs_clf = GridSearchCV(text_clf, parameters, cv=5, n_jobs=-1)
-# gs_clf = gs_clf.fit(twenty_train.data, twenty_train.target)
-# for param_name in sorted(parameters.keys()):
-#     print("%s: %r" % (param_name, gs_clf.best_params_[param_name]))
-
-# parameters = {
-#     'clf__alpha': (1.0000000000000001e-05, 9.9999999999999995e-07),
-#     'clf__max_iter': (10, 50, 80),
-#     'clf__penalty': ('l2', 'elasticnet'),
-#     'tfidf__use_idf': (True, False),
-#     'vect__max_n': (1, 2),
-#     'vect__max_df': (0.5, 0.75, 1.0),
-#     'vect__max_features': (None, 5000, 10000, 50000)
-# }
-
-'''
 # -----
 '''
 ### SVM ###
