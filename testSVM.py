@@ -31,7 +31,7 @@ from sklearn import metrics
 from sklearn.model_selection import GridSearchCV
 from sklearn.feature_selection import GenericUnivariateSelect, SelectPercentile, SelectKBest, SelectFpr, SelectFromModel, SelectFwe, SequentialFeatureSelector, RFE, RFECV, VarianceThreshold, chi2, f_classif, mutual_info_classif
 from sklearn.tree import DecisionTreeClassifier
-from sklearn.svm import LinearSVC
+from sklearn.svm import LinearSVC,SVC
 from sklearn.decomposition import PCA
 
 ### Dataset ###
@@ -156,6 +156,69 @@ print("SGD")
 vect = TfidfVectorizer(lowercase=True, stop_words=my_stop_words)
 clf = SGDClassifier(penalty="elasticnet")
 text_clf = check_performance(vect, clf)
+
+print("hi")
+vect = TfidfVectorizer(lowercase=True, stop_words=my_stop_words, ngram_range=(1,2))
+clf = SGDClassifier(penalty="elasticnet")
+text_clf = check_performance(vect, clf)
+
+print("hilin")
+vect = TfidfVectorizer(lowercase=True, stop_words=my_stop_words, ngram_range=(1,2))
+clf = LinearSVC()
+text_clf = check_performance(vect, clf)
+print("aaa")
+vect = TfidfVectorizer(lowercase=True, stop_words=my_stop_words, ngram_range=(1,2))
+clf = SVC(C=10)
+text_clf = check_performance(vect, clf)
+# parameters = {
+#     # 'clf__alpha': (1.0000000000000001e-05, 9.9999999999999995e-07),
+#     # 'clf__max_iter': (10, 50, 80),
+#     # 'clf__penalty': ('l2', 'elasticnet'),
+#     # 'vect__max_df': (0.5, 0.75, 1.0),
+#     # 'vect__max_features': (None, 5000, 10000, 50000)
+#     'clf__C': [.001, .01, .1, 1, 10, 100, 1000],
+#     #'clf__kernel': ["linear", "poly", "rbf", "sigmoid", "precomputed"]
+#  }
+# gs_clf = GridSearchCV(text_clf, parameters, cv=5, n_jobs=-1)
+# gs_clf = gs_clf.fit(twenty_train.data, twenty_train.target)
+# for param_name in sorted(parameters.keys()):
+#     print("%s: %r" % (param_name, gs_clf.best_params_[param_name]))
+
+# linear, poly, rbf, sigmoid, precomputed
+
+vect = TfidfVectorizer(lowercase=True, stop_words=my_stop_words, ngram_range=(1,2))
+clf = SVC(kernel="linear")
+text_clf = check_performance(vect, clf)
+
+# vect = TfidfVectorizer(lowercase=True, stop_words=my_stop_words, ngram_range=(1,2))
+# clf = SVC(kernel="poly")
+# text_clf = check_performance(vect, clf)
+
+print("sigmoid")
+vect = TfidfVectorizer(lowercase=True, stop_words=my_stop_words, ngram_range=(1,2))
+clf = SVC(kernel="sigmoid", C=10)
+text_clf = check_performance(vect, clf)
+parameters = {
+    # 'clf__alpha': (1.0000000000000001e-05, 9.9999999999999995e-07),
+    # 'clf__max_iter': (10, 50, 80),
+    # 'clf__penalty': ('l2', 'elasticnet'),
+    # 'vect__max_df': (0.5, 0.75, 1.0),
+    # 'vect__max_features': (None, 5000, 10000, 50000)
+    'clf__C': [.001, .01, .1, 1, 10, 100, 1000]
+ }
+gs_clf = GridSearchCV(text_clf, parameters, cv=5, n_jobs=-1)
+gs_clf = gs_clf.fit(twenty_train.data, twenty_train.target)
+for param_name in sorted(parameters.keys()):
+    print("%s: %r" % (param_name, gs_clf.best_params_[param_name]))
+
+# vect = TfidfVectorizer(lowercase=True, stop_words=my_stop_words, ngram_range=(1,2))
+# clf = SVC(kernel="sigmoid", C=100)
+# text_clf = check_performance(vect, clf)
+
+# vect = TfidfVectorizer(lowercase=True, stop_words=my_stop_words, ngram_range=(1,2))
+# clf = SVC(kernel="precomputer")
+# text_clf = check_performance(vect, clf)
+
 clf = SGDClassifier(penalty="elasticnet", max_iter=50)
 text_clf = check_performance(vect, clf)
 clf = SGDClassifier(penalty="elasticnet", l1_ratio=0.5)
@@ -170,13 +233,6 @@ vect = TfidfVectorizer(lowercase=True, stop_words=my_stop_words, max_df=0.75)
 clf = SGDClassifier(alpha=0.0001, penalty="elasticnet")
 text_clf = check_performance(vect, clf)
 
-# vect = CountVectorizer()
-# clf = LinearSVC()
-# text_clf = check_performance(vect, clf)
-
-vect = TfidfVectorizer()
-clf = LinearSVC()
-text_clf = check_performance(vect, clf)
 
 vect = TfidfVectorizer(lowercase=True, stop_words=my_stop_words)
 clf = SGDClassifier(alpha=0.0001, penalty="elasticnet")
