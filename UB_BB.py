@@ -32,6 +32,7 @@ from sklearn.pipeline import Pipeline
 from sklearn.naive_bayes import MultinomialNB
 from sklearn.linear_model import LogisticRegression
 from sklearn.linear_model import SGDClassifier
+from sklearn.svm import LinearSVC
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import precision_recall_fscore_support
 from sklearn.metrics import f1_score
@@ -73,7 +74,7 @@ if __name__ == '__main__':
     # NB UB
     text_clf = Pipeline([
         ('vect', CountVectorizer()), # vector
-        ('tfidf', TfidfTransformer()), # transformer
+        #('tfidf', TfidfTransformer()), # transformer
         ('clf', MultinomialNB()), # classifier
     ])
     text_clf.fit(twenty_train.data, twenty_train.target)
@@ -87,7 +88,7 @@ if __name__ == '__main__':
     # NB BB
     text_clf = Pipeline([
         ('vect', CountVectorizer(analyzer='word', ngram_range=(2, 2))), # vector
-        ('tfidf', TfidfTransformer()), # transformer
+        #('tfidf', TfidfTransformer()), # transformer
         ('clf', MultinomialNB()), # classifier
     ])
     text_clf.fit(twenty_train.data, twenty_train.target)
@@ -128,7 +129,7 @@ if __name__ == '__main__':
     text_clf = Pipeline([
         ('vect', CountVectorizer()), # vector
         ('tfidf', TfidfTransformer()), # transformer
-        ('clf', SGDClassifier()), # classifier
+        ('clf', LinearSVC()), # classifier
     ])
     text_clf.fit(twenty_train.data, twenty_train.target)
     predicted = text_clf.predict(docs_test)
@@ -140,7 +141,7 @@ if __name__ == '__main__':
     text_clf = Pipeline([
         ('vect', CountVectorizer(analyzer='word', ngram_range=(2, 2))), # vector
         ('tfidf', TfidfTransformer()), # transformer
-        ('clf', SGDClassifier()), # classifier
+        ('clf', LinearSVC()), # classifier
     ])
     text_clf.fit(twenty_train.data, twenty_train.target)
     predicted = text_clf.predict(docs_test)
@@ -153,7 +154,7 @@ if __name__ == '__main__':
     # RF UB
     text_clf = Pipeline([
         ('vect', CountVectorizer()), # vector
-        ('tfidf', TfidfTransformer()), # transformer
+        #('tfidf', TfidfTransformer()), # transformer
         ('clf', RandomForestClassifier()), # classifier
     ])
     text_clf.fit(twenty_train.data, twenty_train.target)
@@ -165,7 +166,7 @@ if __name__ == '__main__':
     # RF BB
     text_clf = Pipeline([
         ('vect', CountVectorizer(analyzer='word', ngram_range=(2, 2))), # vector
-        ('tfidf', TfidfTransformer()), # transformer
+        #('tfidf', TfidfTransformer()), # transformer
         ('clf', RandomForestClassifier()), # classifier
     ])
     text_clf.fit(twenty_train.data, twenty_train.target)
@@ -186,7 +187,7 @@ if __name__ == '__main__':
     def learning_curve(train_data, train_target, t_size, classifier):
         text_clf = Pipeline([
             ('vect', CountVectorizer()), # vector
-            ('tfidf', TfidfTransformer()), # transformer
+            #('tfidf', TfidfTransformer()), # transformer
             ('clf', classifier), # classifier
         ])
         if (t_size == 1.0):
