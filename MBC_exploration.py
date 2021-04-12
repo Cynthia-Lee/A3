@@ -198,16 +198,16 @@ def mbc_exploration(twenty_train, twenty_evaluation):
     # check_performance(twenty_evaluation, text_clf)
 
     # 2nd best configuration (no lemma)
-    vect = TfidfVectorizer(lowercase=True, stop_words=my_stop_words, max_df=0.5, ngram_range=(1,2))
-    clf = MultinomialNB(alpha=0.001)
-    text_clf = clf_pipe(twenty_train, vect, clf)
-    nb_c2 = (text_clf, check_performance(twenty_evaluation, text_clf))
+    # vect = TfidfVectorizer(lowercase=True, stop_words=my_stop_words, max_df=0.5, ngram_range=(1,2))
+    # clf = MultinomialNB(alpha=0.001)
+    # text_clf = clf_pipe(twenty_train, vect, clf)
+    # nb_c2 = (text_clf, check_performance(twenty_evaluation, text_clf))
 
     # best configuration (lemma)
     vect = TfidfVectorizer(lowercase=True, tokenizer=tokenize_and_lemma, max_df=0.5, ngram_range=(1,3))
     clf = MultinomialNB(alpha=0.001)
     text_clf = clf_pipe(twenty_train, vect, clf)
-    nb_c1 = (text_clf, check_performance(twenty_evaluation, text_clf))
+    nb_c = (text_clf, check_performance(twenty_evaluation, text_clf))
 
     # parameters = {
     #     'vect__ngram_range': [(1, 1), (1, 2), (2, 2), (1, 3), (3, 3), (1, 4)],
@@ -309,16 +309,16 @@ def mbc_exploration(twenty_train, twenty_evaluation):
     # check_performance(twenty_evaluation, text_clf)
 
     # best configuration
-    vect = TfidfVectorizer(lowercase=True, stop_words=my_stop_words)
-    clf = LogisticRegression(penalty='l1', tol=0.01, solver='saga', C=1000, max_iter=1000)
-    text_clf = clf_pipe(twenty_train, vect, clf)
-    lr_c1 = (text_clf, check_performance(twenty_evaluation, text_clf))
+    # vect = TfidfVectorizer(lowercase=True, stop_words=my_stop_words)
+    # clf = LogisticRegression(penalty='l1', tol=0.01, solver='saga', C=1000, max_iter=1000)
+    # text_clf = clf_pipe(twenty_train, vect, clf)
+    # lr_c1 = (text_clf, check_performance(twenty_evaluation, text_clf))
 
     # 2nd best configuration
     vect = TfidfVectorizer(lowercase=True, tokenizer=tokenize_and_lemma)
     clf = LogisticRegression(penalty='l1', tol=0.01, solver='saga', C=1000, max_iter=1000)
     text_clf = clf_pipe(twenty_train, vect, clf)
-    lr_c2 = (text_clf, check_performance(twenty_evaluation, text_clf))
+    lr_c = (text_clf, check_performance(twenty_evaluation, text_clf))
 
     # vect = TfidfVectorizer(lowercase=True, stop_words=my_stop_words)
     # clf = LogisticRegression(penalty='l2', tol=0.01, solver='saga', C=1000, max_iter=1000, multi_class="multinomial")
@@ -375,9 +375,9 @@ def mbc_exploration(twenty_train, twenty_evaluation):
     # check_performance(twenty_evaluation, text_clf)
 
     # 2nd best configuration
-    clf = SGDClassifier(penalty="l2")
-    text_clf = clf_pipe(twenty_train, vect, clf)
-    svm_c2 = (text_clf, check_performance(twenty_evaluation, text_clf))
+    # clf = SGDClassifier(penalty="l2")
+    # text_clf = clf_pipe(twenty_train, vect, clf)
+    # svm_c2 = (text_clf, check_performance(twenty_evaluation, text_clf))
 
     # vect = TfidfVectorizer(ngram_range=(1, 2), lowercase=True, stop_words=my_stop_words, max_df=0.75)
     # clf = SGDClassifier(alpha=0.00001, penalty="l2")
@@ -412,7 +412,7 @@ def mbc_exploration(twenty_train, twenty_evaluation):
     vect = TfidfVectorizer(lowercase=True, stop_words=my_stop_words, ngram_range=(1,2))
     clf = SVC(kernel="sigmoid", C=10)
     text_clf = clf_pipe(twenty_train, vect, clf)
-    svm_c1 = (text_clf, check_performance(twenty_evaluation, text_clf))
+    svm_c = (text_clf, check_performance(twenty_evaluation, text_clf))
     # parameters = {
     #     # 'clf__alpha': (1.0000000000000001e-05, 9.9999999999999995e-07),
     #     # 'clf__max_iter': (10, 50, 80),
@@ -449,10 +449,10 @@ def mbc_exploration(twenty_train, twenty_evaluation):
     test_number = 0
 
     # 2nd best configuration
-    vect = TfidfVectorizer(lowercase=True, stop_words=my_stop_words)
-    clf = RandomForestClassifier()
-    text_clf = clf_pipe(twenty_train, vect, clf)
-    rf_c2 = (text_clf, check_performance(twenty_evaluation, text_clf))
+    # vect = TfidfVectorizer(lowercase=True, stop_words=my_stop_words)
+    # clf = RandomForestClassifier()
+    # text_clf = clf_pipe(twenty_train, vect, clf)
+    # rf_c2 = (text_clf, check_performance(twenty_evaluation, text_clf))
     # parameters = {
     #     'vect__ngram_range': [(1, 1), (1, 2), (2, 2), (1, 3)],
     #     #'vect__max_df': [0.5, 0.7, 0.9],
@@ -468,7 +468,7 @@ def mbc_exploration(twenty_train, twenty_evaluation):
     vect = TfidfVectorizer(lowercase=True, stop_words=my_stop_words, max_df=0.5, min_df=5, ngram_range=(1, 2))
     clf = RandomForestClassifier()
     text_clf = clf_pipe(twenty_train, vect, clf)
-    rf_c1 =  (text_clf, check_performance(twenty_evaluation, text_clf))
+    rf_c =  (text_clf, check_performance(twenty_evaluation, text_clf))
     # number of trees, number of features
     # parameters = {
     #     # 'vect__ngram_range': [(1, 1), (1, 2), (2, 2), (1, 3)],
@@ -488,7 +488,7 @@ def mbc_exploration(twenty_train, twenty_evaluation):
     # text_clf = clf_pipe(twenty_train, vect, clf)
     # check_performance(twenty_evaluation, text_clf)
 
-    return [("NB", nb_c1, nb_c2), ("LR", lr_c1, lr_c2), ("SVM", svm_c1, svm_c2), ("RF", rf_c1, rf_c2)]
+    return [("NB,LB", nb_c), ("LR,LSA", lr_c), ("SVM,SNSS", svm_c), ("RF,SN", rf_c)]
 
 ### Main class ###
 if __name__ == '__main__':
@@ -511,14 +511,7 @@ if __name__ == '__main__':
     for config in configurations:
         classification = config[0]
         c1 = (config[1])[1]
-        c2 = (config[2])[1]
-        f.write(classification + ",C1," + c1 + "\n")
-        f.write(classification + ",C2," + c2 + "\n")
-        print(config[1])
-        print(c1)
-        print("---")
-        print(config[2])
-        print(c2 + "\n")
+        f.write(classification + " " + c1 + "\n")
     f.close()
 
 
