@@ -184,12 +184,19 @@ if __name__ == '__main__':
     # The learning curve is a plot of the performance of the classifier 
     # (F1-score on the y-axis) on the evaluation data, when trained on different amounts of training data (size of training data on the x-axis).
 
-    def learning_curve(train_data, train_target, t_size, classifier):
-        text_clf = Pipeline([
-            ('vect', CountVectorizer()), # vector
-            #('tfidf', TfidfTransformer()), # transformer
-            ('clf', classifier), # classifier
-        ])
+    def learning_curve(train_data, train_target, t_size, classifier, tfdif=False):
+        if (tfdif == True):
+            text_clf = Pipeline([
+                ('vect', CountVectorizer()), # vector
+                ('tfidf', TfidfTransformer()), # transformer
+                ('clf', classifier), # classifier
+            ])
+        else:
+            text_clf = Pipeline([
+                ('vect', CountVectorizer()), # vector
+                #('tfidf', TfidfTransformer()), # transformer
+                ('clf', classifier), # classifier
+            ])
         if (t_size == 1.0):
             text_clf.fit(twenty_train.data, twenty_train.target) # text_clf.fit(train_data, train_target)
         else:
@@ -213,9 +220,9 @@ if __name__ == '__main__':
         for t_size in training_sizes:
             nb = learning_curve(twenty_train.data, twenty_train.target, t_size, MultinomialNB())
             nb_f1_arr.append(nb)
-            lr = learning_curve(twenty_train.data, twenty_train.target, t_size, LogisticRegression())
+            lr = learning_curve(twenty_train.data, twenty_train.target, t_size, LogisticRegression(), tfdif=True)
             lr_f1_arr.append(lr)
-            svm = learning_curve(twenty_train.data, twenty_train.target, t_size, SGDClassifier())
+            svm = learning_curve(twenty_train.data, twenty_train.target, t_size, SGDClassifier(), tfdif=True)
             svm_f1_arr.append(svm)
             rf = learning_curve(twenty_train.data, twenty_train.target, t_size, RandomForestClassifier())
             rf_f1_arr.append(rf)
@@ -230,8 +237,9 @@ if __name__ == '__main__':
         plt.ylabel('F1-score')
         plt.ylim(0.0, 1.0)
 
-        plt.plot(x_label, nb_f1_arr, '-^', color='red') #NB
-        plt.plot(x_label, lr_f1_arr, '-x', color='violet') # LR
-        plt.plot(x_label, svm_f1_arr, '->', color='forestgreen') # SVM
-        plt.plot(x_label, rf_f1_arr, '-o', color='orange') # RF
+        plot_nb, = plt.plot(x_label, nb_f1_arr, '-^', color='red', label='NB') #NB
+        plot_lr, = plt.plot(x_label, lr_f1_arr, '-x', color='violet', label='LR') # LR
+        plot_svm, = plt.plot(x_label, svm_f1_arr, '->', color='forestgreen', label='SVM') # SVM
+        plot_rf, = plt.plot(x_label, rf_f1_arr, '-o', color='orange', label='RF') # RF
+        plt.legend(handles=[plot_nb, plot_lr, plot_svm, plot_rf])
         plt.show()
