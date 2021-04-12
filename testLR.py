@@ -106,8 +106,8 @@ def tokenize_and_lemma(text):
         if re.search('[a-zA-Z]', token): # ignore non-letters
             filtered_tokens.append(token)
     #exclude stopwords from lemma words
-    stems = [lemma.lemmatize(t) for t in filtered_tokens if t not in my_stop_words]
-    return stems
+    lemmas = [lemma.lemmatize(t) for t in filtered_tokens if t not in my_stop_words]
+    return lemmas
 
 # print(tokenize_and_stem("don't stop the running of ran"))
 
@@ -153,7 +153,8 @@ print("\nLR")
 
 # vect = TfidfVectorizer(ngram_range=(1, 4), lowercase=True, tokenizer=tokenize_and_lemma, max_df=0.5)
 # vect = TfidfVectorizer(lowercase=True, stop_words=nltk_stop_words, token_pattern=r"(?!'.*')\b[\w']+\b")
-vect = TfidfVectorizer(lowercase=True, stop_words=nltk_stop_words)
+# vect = TfidfVectorizer(lowercase=True, stop_words=nltk_stop_words)
+vect = TfidfVectorizer(lowercase=True, stop_words=my_stop_words)
 # vect = TfidfVectorizer(lowercase=True, tokenizer=tokenize_and_lemma)
 # vect = TfidfVectorizer()
 
@@ -209,8 +210,25 @@ text_clf = check_performance(vect, clf)
 # text_clf = check_performance(vect, clf)
 
 print("sag") #penalty=l2
-clf = LogisticRegression(solver="sag")
+clf = LogisticRegression(solver="sag", C=100)
 text_clf = check_performance(vect, clf)
+# C = 100
+# parameters = {
+#     #'vect__ngram_range': [(1, 1), (1, 2), (2, 2), (1, 3), (3, 3), (1, 4), (4, 4)],
+#     #'vect__max_df': [0.5, 0.7, 0.9],
+#     #'vect__sublinear_tf': [True, False],
+#     #'vect__min_df': [1, 5],
+#     #'clf__alpha': (1e-2, 1e-3),
+#     'clf__C': [.001, .01, .1, 1, 10, 100, 1000]
+# }
+# gs_clf = GridSearchCV(text_clf, parameters, cv=5, n_jobs=-1)
+# gs_clf = gs_clf.fit(twenty_train.data, twenty_train.target)
+# for param_name in sorted(parameters.keys()):
+#     print("%s: %r" % (param_name, gs_clf.best_params_[param_name]))
+
+# select = SelectFromModel(LinearSVC(dual=False))
+# clf = LogisticRegression(solver="sag")
+# text_clf = check_performance(vect, clf, select)
 
 print("sag tol") #penalty=l2
 clf = LogisticRegression(solver="sag", tol=1e-2)
@@ -241,6 +259,62 @@ text_clf = check_performance(vect, clf)
 print("saga penalty=l2")
 clf = LogisticRegression(penalty='l2', solver='saga', tol=0.1)
 text_clf = check_performance(vect, clf)
+
+print("hi")
+# print(vect)
+vect = TfidfVectorizer(lowercase=True, stop_words=my_stop_words) #, max_df=0.7)
+clf = LogisticRegression(penalty='l1', tol=0.01, solver='saga', C=50)
+text_clf = check_performance(vect, clf)
+print("hih")
+vect = TfidfVectorizer(lowercase=True, stop_words=my_stop_words) #, max_df=0.7)
+clf = LogisticRegression(penalty='l1', tol=0.01, solver='saga', C=1000)
+text_clf = check_performance(vect, clf)
+
+print("best?")
+vect = TfidfVectorizer(lowercase=True, tokenizer=tokenize_and_lemma, max_df=0.7)
+clf = LogisticRegression(penalty='l1', tol=0.001, solver='saga', C=1000, max_iter=1000)
+text_clf = check_performance(vect, clf)
+
+vect = TfidfVectorizer(lowercase=True, tokenizer=tokenize_and_lemma)
+# vect = TfidfVectorizer(lowercase=True, stop_words=my_stop_words, ngram_range=(1,2), max_df=0.5) #, max_df=0.7)
+clf = LogisticRegression(penalty='l1', tol=0.001, solver='saga', C=1000, max_iter=1000)
+text_clf = check_performance(vect, clf)
+
+clf = LogisticRegression(penalty='l2', tol=0.001, solver='saga', C=1000, max_iter=1000)
+text_clf = check_performance(vect, clf)
+
+# vect = TfidfVectorizer(lowercase=True, stop_words=my_stop_words, ngram_range=(1,2), max_df=0.5)
+# clf = LogisticRegression(penalty='l1', tol=0.001, solver='saga', C=1000, max_iter=1000)
+# text_clf = check_performance(vect, clf)
+# parameters = {
+#     'vect__ngram_range': [(1, 1), (1, 2)],
+#     #'vect__max_df': [0.5, 0.7, 0.9],
+#     #'vect__sublinear_tf': [True, False],
+#     #'clf__C': [.001, .01, .1, 1, 10, 100, 1000]
+# }
+# gs_clf = GridSearchCV(text_clf, parameters, cv=5, n_jobs=-1)
+# gs_clf = gs_clf.fit(twenty_train.data, twenty_train.target)
+# for param_name in sorted(parameters.keys()):
+#     print("%s: %r" % (param_name, gs_clf.best_params_[param_name]))
+
+# vect = TfidfVectorizer(lowercase=True, stop_words=my_stop_words, ngram_range=(1,2), max_df=0.5)
+clf = LogisticRegression(penalty='elasticnet', solver='saga', l1_ratio=0.5, tol=0.01, C=50)
+text_clf = check_performance(vect, clf)
+# parameters = {
+#     #'vect__ngram_range': [(1, 1), (1, 2), (2, 2), (1, 3), (3, 3), (1, 4), (4, 4)],
+#     #'vect__max_df': [0.5, 0.7, 0.9],
+#     #'vect__sublinear_tf': [True, False],
+#     #'vect__min_df': [1, 5],
+#     #'clf__alpha': (1e-2, 1e-3),
+#     'clf__C': [.001, .01, .1, 1, 10, 100, 1000]
+# }
+# gs_clf = GridSearchCV(text_clf, parameters, cv=5, n_jobs=-1)
+# gs_clf = gs_clf.fit(twenty_train.data, twenty_train.target)
+# for param_name in sorted(parameters.keys()):
+#     print("%s: %r" % (param_name, gs_clf.best_params_[param_name]))
+
+
+
 # parameters = {
 #     'clf__max_iter': (10, 50, 80),
 #     'vect__use_idf': (True, False),
