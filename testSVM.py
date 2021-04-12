@@ -153,7 +153,27 @@ def check_performance(vect, clf, select=None, scaler=None): #, encoder=None):
 print("\nSVM")
 
 print("SGD")
-vect = TfidfVectorizer(ngram_range=(1, 2), lowercase=True, tokenizer=tokenize_and_lemma, max_df=0.75)
+vect = TfidfVectorizer(lowercase=True, stop_words=my_stop_words)
+clf = SGDClassifier(penalty="elasticnet")
+text_clf = check_performance(vect, clf)
+clf = SGDClassifier(penalty="elasticnet", max_iter=50)
+text_clf = check_performance(vect, clf)
+clf = SGDClassifier(penalty="elasticnet", l1_ratio=0.5)
+text_clf = check_performance(vect, clf)
+# clf = SGDClassifier(penalty="l1")
+# text_clf = check_performance(vect, clf)
+clf = SGDClassifier(penalty="l2")
+text_clf = check_performance(vect, clf)
+
+print("\n")
+
+
+vect = TfidfVectorizer(lowercase=True, stop_words=my_stop_words, max_df=0.75)
+clf = SGDClassifier(alpha=0.0001, penalty="elasticnet")
+text_clf = check_performance(vect, clf)
+
+# vect = TfidfVectorizer(ngram_range=(1, 2), lowercase=True, tokenizer=tokenize_and_lemma, max_df=0.75)
+vect = TfidfVectorizer(ngram_range=(1, 2), lowercase=True, stop_words=my_stop_words, max_df=0.75)
 clf = SGDClassifier(alpha=0.00001, penalty="l2")
 text_clf = check_performance(vect, clf)
 
@@ -161,6 +181,7 @@ vect = TfidfVectorizer(max_df=0.75, max_features=50000)
 clf = SGDClassifier(alpha=9.9999999999999995e-07, penalty="elasticnet", max_iter=50)
 text_clf = check_performance(vect, clf)
 
+print("follow")
 vect = TfidfVectorizer(ngram_range=(1, 2), max_df=0.75, max_features=50000)
 clf = SGDClassifier(alpha=9.9999999999999995e-07, penalty="elasticnet", max_iter=50)
 text_clf = check_performance(vect, clf)
