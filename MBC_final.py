@@ -42,5 +42,5 @@ if __name__ == '__main__':
 
     print(nb_c1)
     c1 = nb_c1[1]
-    f.write("NB" + ",C1," + c1)
+    f.write("NB" + ",LB," + c1)
     f.close()
